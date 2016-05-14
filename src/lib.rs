@@ -15,12 +15,42 @@ pub enum BezNode {
 }
 
 impl BezNode {
+    pub fn new_point(x: f32, y: f32) -> BezNode {
+        BezNode::Point {
+            x: x,
+            y: y
+        }
+    }
+
+    pub fn new_control(x: f32, y: f32) -> BezNode {
+        BezNode::Control {
+            x: x,
+            y: y
+        }
+    }
+
     pub fn x(self) -> f32 {
         <BezNode as Into<(f32, f32)>>::into(self).0
     }
 
     pub fn y(self) -> f32 {
         <BezNode as Into<(f32, f32)>>::into(self).1
+    }
+
+    pub fn is_point(self) -> bool {
+        use self::BezNode::*;
+        match self {
+            Point{..} => true,
+            Control{..} => false
+        }
+    }
+
+    pub fn is_control(self) -> bool {
+        use self::BezNode::*;
+        match self {
+            Point{..} => false,
+            Control{..} => true
+        }
     }
 }
 
@@ -29,7 +59,7 @@ impl Into<[f32; 2]> for BezNode {
         use self::BezNode::*;
 
         match self {
-            Point{x, y} |
+            Point{x, y}    |
             Control{x, y} => [x, y]
         }
     }
@@ -40,7 +70,7 @@ impl Into<(f32, f32)> for BezNode {
         use self::BezNode::*;
 
         match self {
-            Point{x, y} |
+            Point{x, y}    |
             Control{x, y} => (x, y)
         }
     }
