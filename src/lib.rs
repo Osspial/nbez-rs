@@ -75,14 +75,14 @@ impl Into<(f32, f32)> for BezNode {
     }
 }
 
-pub struct BezCube<I> 
-        where I: AsRef<[BezNode]> {
-    container: I
+pub struct BezCube<C> 
+        where C: AsRef<[BezNode]> {
+    container: C
 }
 
-impl<I> BezCube<I> 
-        where I: AsRef<[BezNode]> {
-    pub fn from_container(c: I) -> Result<BezCube<I>, BevError> {
+impl<C> BezCube<C> 
+        where C: AsRef<[BezNode]> {
+    pub fn from_container(c: C) -> Result<BezCube<C>, BevError> {
         {
             let c = c.as_ref();
             if c.len() % 3 != 1 {
@@ -104,21 +104,23 @@ impl<I> BezCube<I>
             container: c
         })
     }
-}
 
-impl<I> AsRef<I> for BezCube<I>
-    where I: AsRef<[BezNode]> {
+    pub unsafe fn from_container_unchecked(c: C) -> BezCube<C> {
+        BezCube {
+            container: c
+        }
+    }
 
-    fn as_ref(&self) -> &I {
-        &self.container
+    pub fn unwrap(self) -> C {
+        self.container
     }
 }
 
-impl<I> AsMut<I> for BezCube<I>
-    where I: AsRef<[BezNode]> {
+impl<C> AsRef<C> for BezCube<C>
+    where C: AsRef<[BezNode]> {
 
-    fn as_mut(&mut self) -> &mut I {
-        &mut self.container
+    fn as_ref(&self) -> &C {
+        &self.container
     }
 }
 
