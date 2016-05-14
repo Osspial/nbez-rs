@@ -1,39 +1,43 @@
-use std::convert::{Into, AsRef, AsMut};
+extern crate num;
+
+use std::convert::{Into, AsRef};
+use std::marker::PhantomData;
+use num::Float;
 
 #[derive(Debug, Clone, Copy)]
-pub enum BezNode {
+pub enum BezNode<F: Float> {
     Point {
-        x: f32,
-        y: f32
+        x: F,
+        y: F
     },
 
     Control {
-        x: f32,
-        y: f32
+        x: F,
+        y: F
     }
 }
 
-impl BezNode {
-    pub fn new_point(x: f32, y: f32) -> BezNode {
+impl<F: Float> BezNode<F> {
+    pub fn new_point(x: F, y: F) -> BezNode<F> {
         BezNode::Point {
             x: x,
             y: y
         }
     }
 
-    pub fn new_control(x: f32, y: f32) -> BezNode {
+    pub fn new_control(x: F, y: F) -> BezNode<F> {
         BezNode::Control {
             x: x,
             y: y
         }
     }
 
-    pub fn x(self) -> f32 {
-        <BezNode as Into<(f32, f32)>>::into(self).0
+    pub fn x(self) -> F {
+        <BezNode<F> as Into<(F, F)>>::into(self).0
     }
 
-    pub fn y(self) -> f32 {
-        <BezNode as Into<(f32, f32)>>::into(self).1
+    pub fn y(self) -> F {
+        <BezNode<F> as Into<(F, F)>>::into(self).1
     }
 
     pub fn is_point(self) -> bool {
@@ -53,8 +57,8 @@ impl BezNode {
     }
 }
 
-impl Into<[f32; 2]> for BezNode {
-    fn into(self) -> [f32; 2] {
+impl<F: Float> Into<[F; 2]> for BezNode<F> {
+    fn into(self) -> [F; 2] {
         use self::BezNode::*;
 
         match self {
@@ -64,8 +68,8 @@ impl Into<[f32; 2]> for BezNode {
     }
 }
 
-impl Into<(f32, f32)> for BezNode {
-    fn into(self) -> (f32, f32) {
+impl<F: Float> Into<(F, F)> for BezNode<F> {
+    fn into(self) -> (F, F) {
         use self::BezNode::*;
 
         match self {
@@ -75,22 +79,25 @@ impl Into<(f32, f32)> for BezNode {
     }
 }
 
-pub struct BezCube<C> 
-        where C: AsRef<[BezNode]> {
-    container: C
+pub struct BezCube<C, F> 
+        where C: AsRef<[BezNode<F>]>,
+              F: Float {
+    container: C,
+    float_type: PhantomData<F>
 }
 
-impl<C> BezCube<C> 
-        where C: AsRef<[BezNode]> {
-    pub fn from_container(c: C) -> Result<BezCube<C>, BevError> {
+impl<C, F> BezCube<C, F> 
+        where C: AsRef<[BezNode<F>]>,
+              F: Float {
+    pub fn from_container(c: C) -> Result<BezCube<C, F>, BevError> {
         {
-            let c = c.as_ref();
-            if c.len() % 3 != 1 {
+            let cslice = c.as_ref();
+            if cslice.len() % 3 != 1 {
                 return Err(BevError::InvalidLength)
             }
 
-            for i in 0..c.len()/3 {
-                let curve = &c[i*3..(i+1)*3+1];
+            for i in 0..cslice.len()/3 {
+                let curve = &cslice[i*3..(i+1)*3+1];
                 if !(curve[0].is_point()   &&
                      curve[1].is_control() &&
                      curve[2].is_control() &&
@@ -101,13 +108,15 @@ impl<C> BezCube<C>
         }
 
         Ok(BezCube {
-            container: c
+            container: c,
+            float_type: PhantomData
         })
     }
 
-    pub unsafe fn from_container_unchecked(c: C) -> BezCube<C> {
+    pub unsafe fn from_container_unchecked(c: C) -> BezCube<C, F> {
         BezCube {
-            container: c
+            container: c,
+            float_type: PhantomData
         }
     }
 
@@ -116,8 +125,9 @@ impl<C> BezCube<C>
     }
 }
 
-impl<C> AsRef<C> for BezCube<C>
-    where C: AsRef<[BezNode]> {
+impl<C, F> AsRef<C> for BezCube<C, F> 
+        where C: AsRef<[BezNode<F>]>,
+              F: Float {
 
     fn as_ref(&self) -> &C {
         &self.container
