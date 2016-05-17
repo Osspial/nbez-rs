@@ -1,9 +1,30 @@
 extern crate num;
 
+pub mod core;
+
 use std::convert::{Into, AsRef};
 use std::marker::PhantomData;
-use num::Float;
+use num::{Float, FromPrimitive};
 
+use core::BezCubePoly;
+
+#[derive(Debug, Clone)]
+pub struct Point<F: Float> {
+    pub x: F,
+    pub y: F
+}
+
+impl<F: Float> Into<[F; 2]> for Point<F> {
+    fn into(self) -> [F; 2] {
+        [self.x, self.y]
+    }
+}
+
+impl<F: Float> Into<(F, F)> for Point<F> {
+    fn into(self) -> (F, F) {
+        (self.x, self.y)
+    }
+}
 #[derive(Debug, Clone, Copy)]
 pub enum BezNode<F: Float> {
     Point {
@@ -79,17 +100,33 @@ impl<F: Float> Into<(F, F)> for BezNode<F> {
     }
 }
 
-pub struct BezCube<C, F> 
+#[derive(Debug, Clone)]
+pub struct BezCube<F: Float + FromPrimitive> {
+    pub x: BezCubePoly<F>,
+    pub y: BezCubePoly<F>
+}
+
+impl<F: Float + FromPrimitive> BezCube<F> {
+    pub fn interp(&self, t: F) -> Point<F> {
+        Point {
+            x: self.x.interp(t),
+            y: self.y.interp_unbounded(t) // The interp is already checked when we call x.interp, so we don't have to do it here
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct BezCubeChain<C, F> 
         where C: AsRef<[BezNode<F>]>,
               F: Float {
     container: C,
     float_type: PhantomData<F>
 }
 
-impl<C, F> BezCube<C, F> 
+impl<C, F> BezCubeChain<C, F> 
         where C: AsRef<[BezNode<F>]>,
               F: Float {
-    pub fn from_container(c: C) -> Result<BezCube<C, F>, BevError> {
+    pub fn from_container(c: C) -> Result<BezCubeChain<C, F>, BevError> {
         {
             let cslice = c.as_ref();
             if cslice.len() % 3 != 1 {
@@ -107,14 +144,14 @@ impl<C, F> BezCube<C, F>
             }
         }
 
-        Ok(BezCube {
+        Ok(BezCubeChain {
             container: c,
             float_type: PhantomData
         })
     }
 
-    pub unsafe fn from_container_unchecked(c: C) -> BezCube<C, F> {
-        BezCube {
+    pub unsafe fn from_container_unchecked(c: C) -> BezCubeChain<C, F> {
+        BezCubeChain {
             container: c,
             float_type: PhantomData
         }
@@ -125,7 +162,7 @@ impl<C, F> BezCube<C, F>
     }
 }
 
-impl<C, F> AsRef<C> for BezCube<C, F> 
+impl<C, F> AsRef<C> for BezCubeChain<C, F> 
         where C: AsRef<[BezNode<F>]>,
               F: Float {
 
