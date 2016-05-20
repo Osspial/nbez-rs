@@ -2,29 +2,129 @@ extern crate num;
 
 pub mod core;
 
-use std::convert::{Into, AsRef};
+use std::convert::{Into, From, AsRef};
+use std::ops::{Add, Mul, Div};
 use std::marker::PhantomData;
 use num::{Float, FromPrimitive};
 
 use core::BezCubePoly;
 
-#[derive(Debug, Clone)]
-pub struct Point<F: Float> {
-    pub x: F,
-    pub y: F
-}
+macro_rules! npoint_ops {
+    ($lhs:ty; $rhs:ty = $output:ident<$g_name:ident: $g_ty:ident> {$($field:ident),*}) => {
+        impl<$g_name: $g_ty> Add<$rhs> for $lhs {
+            type Output = $output<$g_name>;
 
-impl<F: Float> Into<[F; 2]> for Point<F> {
-    fn into(self) -> [F; 2] {
-        [self.x, self.y]
+            fn add(self, rhs: $rhs) -> $output<$g_name> {
+                $output {
+                    $($field: self.$field + rhs.$field),*
+                }
+            }
+        }
     }
 }
 
-impl<F: Float> Into<(F, F)> for Point<F> {
-    fn into(self) -> (F, F) {
-        (self.x, self.y)
+macro_rules! impl_npoint {
+    // auxiliary/entry point workaround made by durka42
+    // read the last rule of the macro first
+    (@go $dims: expr; $name:ident<$g_name:ident: $g_ty:ident> {$($field:ident: $f_ty:ty),*} $fields:tt $(,$sibling:ty)*) => {
+                                                              // ^ match the first duplicate of the fields
+                                                                                            // ^ keep the second one as a tt
+        #[derive(Debug, Clone, Copy)]
+        pub struct $name<$g_name: $g_ty> {
+            $(
+                pub $field: $f_ty
+            ),*
+        }
+
+        impl<$g_name: $g_ty> Into<[$g_name; $dims]> for $name<$g_name> {
+            fn into(self) -> [$g_name; $dims] {
+                [$(self.$field),*]
+            }
+        }
+
+        impl<$g_name: $g_ty> Into<($($f_ty),*)> for $name<$g_name> {
+            fn into(self) -> (F, F) {
+                ($(self.$field),*)
+            }
+        }
+
+        npoint_ops!($name<$g_name>; $name<$g_name> = $name<$g_name: $g_ty> {x, y});
+
+        $(
+            // pass the tt-wrapped fields to auxiliary macro
+            impl_npoint!(@sib $name $g_name $g_ty $sibling $fields);
+            npoint_ops!($name<$g_name>; $sibling = $name<$g_name: $g_ty> {x, y});
+        )*
+    };
+    
+    // auxiliary rule
+    (@sib $name:ident $g_name:ident $g_ty:ident $sibling:ty {$($field:ident: $f_ty:ty),*}) => {
+                                                // ^ finally destructure fields out of tt here
+        impl<$g_name: $g_ty> From<$sibling> for $name<$g_name> {
+            fn from(sib: $sibling) -> $name<$g_name> {
+                $name {
+                    $($field: sib.$field),*
+                }
+            }
+        }
+    };
+    
+    // entry point rule
+    ($dims: expr; $name:ident<$g_name:ident: $g_ty:ident> $fields:tt $(,$sibling:ty)*) => {
+                                                          // ^ match fields all together as a tt
+        impl_npoint!(@go
+            $dims;
+            $name<$g_name: $g_ty>
+            $fields // duplicate the fields
+            $fields
+            $(,$sibling)*
+        );
+    };
+}
+
+impl_npoint!{2; Point<F: Float> {
+    x: F,
+    y: F
+}, Vector<F>}
+
+impl_npoint!{2; Vector<F: Float> {
+    x: F,
+    y: F
+}, Point<F>}
+
+impl<F: Float> Vector<F> {
+    pub fn len(self) -> F {
+        (self.x.powi(2) + self.y.powi(2)).sqrt()
+    }
+
+    pub fn normalize(self) -> Vector<F> {
+        self / self.len()
     }
 }
+
+impl<F: Float> Mul<F> for Vector<F> {
+    type Output = Vector<F>;
+
+    fn mul(self, rhs: F) -> Vector<F> {
+        Vector {
+            x: self.x * rhs,
+            y: self.y * rhs
+        }
+    }
+}
+
+impl<F: Float> Div<F> for Vector<F> {
+    type Output = Vector<F>;
+
+    fn div(self, rhs: F) -> Vector<F> {
+        Vector {
+            x: self.x / rhs,
+            y: self.y / rhs
+        }
+    }
+}
+
+
 #[derive(Debug, Clone, Copy)]
 pub enum BezNode<F: Float> {
     Point {
@@ -111,6 +211,13 @@ impl<F: Float + FromPrimitive> BezCube<F> {
         Point {
             x: self.x.interp(t),
             y: self.y.interp_unbounded(t) // The interp is already checked when we call x.interp, so we don't have to do it here
+        }
+    }
+
+    pub fn derivative(&self, t: F) -> Vector<F> {
+        Vector {
+            x: self.x.derivative(t),
+            y: self.y.derivative_unbounded(t)
         }
     }
 }

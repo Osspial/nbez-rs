@@ -33,4 +33,18 @@ impl<F> BezCubePoly<F> where F: Float + FromPrimitive {
         t1         * t.powi(2) * self.ctrl1 * F::from_f32(3.0).unwrap() + 
                      t.powi(3) * self.end
     }
+
+    pub fn derivative(&self, t: F) -> F {
+        let zero = F::from_f32(0.0).unwrap();
+        let one  = F::from_f32(1.0).unwrap();
+        assert!(zero <= t && t <= one);
+        self.derivative_unbounded(t)
+    }
+
+    pub fn derivative_unbounded(&self, t: F) -> F {
+        let t1 = F::from_f32(1.0).unwrap() - t;
+        t1.powi(2)     * (self.ctrl0 - self.start) * F::from_f32(3.0).unwrap() +
+        t1 * t         * (self.ctrl1 - self.ctrl0) * F::from_f32(6.0).unwrap() +
+             t.powi(2) * (self.end - self.ctrl1)   * F::from_f32(3.0).unwrap()
+    }
 }

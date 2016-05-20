@@ -41,20 +41,26 @@ fn main() {
         pipe::new()
     ).unwrap();
 
-
     let curve = BezCube {
         x: BezCubePoly::new(0.0, 0.0, 1.0, 1.0),
         y: BezCubePoly::new(0.0, 1.0, 0.0, 1.0)
     };
 
     let mut verts = [Vertex{ pos: [0.0, 0.0] }; 31];
+    let mut tangents = [Vertex{ pos: [0.0, 0.0] }; 62];
     for i in 0..verts.len() {
-        verts[i].pos = curve.interp(i as f32/(verts.len()-1) as f32).into();
+        let t = i as f32/(verts.len()-1) as f32;
+
+        let interp = curve.interp(t);
+        verts[i].pos = interp.into();
+        tangents[i*2] = verts[i];
+        tangents[i*2 + 1].pos = (curve.derivative(t).normalize()/10.0 + interp).into();
     }
 
-    let (vert_buffer, slice) = factory.create_vertex_buffer_with_slice(&verts, ());
-    let data = pipe::Data {
-        vbuf: vert_buffer,
+    let (vert_buffer, vert_slice) = factory.create_vertex_buffer_with_slice(&verts, ());
+    let (tan_buffer, tan_slice) = factory.create_vertex_buffer_with_slice(&tangents, ());
+    let mut data = pipe::Data {
+        vbuf: vert_buffer.clone(),
         out: main_color
     };
 
@@ -67,7 +73,13 @@ fn main() {
         }
 
         encoder.clear(&data.out, [0.0, 0.0, 0.0, 1.0]);
-        encoder.draw(&slice, &pso, &data);
+
+        data.vbuf = vert_buffer.clone();
+        encoder.draw(&vert_slice, &pso, &data);
+
+        data.vbuf = tan_buffer.clone();
+        encoder.draw(&tan_slice, &pso, &data);
+
         encoder.flush(&mut device);
         window.swap_buffers().unwrap();
         device.cleanup();
