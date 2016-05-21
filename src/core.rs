@@ -1,50 +1,84 @@
 use num::{Float, FromPrimitive};
 
-/// A one-dimensional cubic bezier polynomial
-#[derive(Debug, Clone)]
-pub struct BezCubePoly<F> where F: Float + FromPrimitive {
-    pub start: F,
-    pub ctrl0: F,
-    pub ctrl1: F,
-    pub end: F
+macro_rules! count {
+    ($idc:tt) => (1);
+    ($($element:tt),*) => {{$(count!($element) +)* 0}};
 }
 
-impl<F> BezCubePoly<F> where F: Float + FromPrimitive {
-    pub fn new(start: F, ctrl0: F, ctrl1: F, end: F) -> BezCubePoly<F> {
-        BezCubePoly {
-            start: start,
-            ctrl0: ctrl0,
-            ctrl1: ctrl1,
-            end: end 
+macro_rules! n_bezier {
+    ($name:ident {
+        $($field:ident: $weight:expr),+
+    } derived {
+        $($dleft:ident - $dright:ident: $dweight:expr),+
+    }) => {
+        #[derive(Debug, Clone)]
+        pub struct $name<F> where F: Float + FromPrimitive {
+            $($field: F),+
+        }
+
+        impl<F> $name<F> where F: Float + FromPrimitive {
+            pub fn new($($field: F),+) -> $name<F> {
+                $name {
+                    $($field: $field),+
+                }
+            }
+
+            pub fn interp(&self, t: F) -> F {
+                let zero = F::from_f32(0.0).unwrap();
+                let one  = F::from_f32(1.0).unwrap();
+                assert!(zero <= t && t <= one);
+                self.interp_unbounded(t)
+            }
+
+            pub fn interp_unbounded(&self, t: F) -> F {
+                let t1 = F::from_f32(1.0).unwrap() - t;
+                const COUNT: i32 = count!($($field),+) - 1;
+                let mut factor = COUNT + 1;
+
+                $(
+                    factor -= 1;
+                    let $field =
+                        t1.powi(factor) * 
+                        t.powi(COUNT-factor) * 
+                        self.$field * 
+                        F::from_i32($weight).unwrap();
+                )+
+                $($field +)+ F::from_f32(0.0).unwrap()
+            }
+
+            pub fn derivative(&self, t: F) -> F {
+                let zero = F::from_f32(0.0).unwrap();
+                let one  = F::from_f32(1.0).unwrap();
+                assert!(zero <= t && t <= one);
+                self.derivative_unbounded(t)
+            }
+
+            pub fn derivative_unbounded(&self, t: F) -> F {
+                let t1 = F::from_f32(1.0).unwrap() - t;
+                const COUNT: i32 = count!($($field),+) - 2;
+                let mut factor = COUNT + 1;
+
+                $(
+                    factor -= 1;
+                    let $dleft =
+                        t1.powi(factor) *
+                        t.powi(COUNT-factor) *
+                        (self.$dleft - self.$dright) *
+                        F::from_i32($dweight).unwrap();
+                )+
+                $($dleft +)+ F::from_f32(0.0).unwrap()
+            }
         }
     }
-
-    pub fn interp(&self, t: F) -> F {
-        let zero = F::from_f32(0.0).unwrap();
-        let one  = F::from_f32(1.0).unwrap();
-        assert!(zero <= t && t <= one);
-        self.interp_unbounded(t)
-    }
-
-    pub fn interp_unbounded(&self, t: F) -> F {
-        let t1 = F::from_f32(1.0).unwrap() - t;
-        t1.powi(3)             * self.start                             + 
-        t1.powi(2) * t         * self.ctrl0 * F::from_f32(3.0).unwrap() + 
-        t1         * t.powi(2) * self.ctrl1 * F::from_f32(3.0).unwrap() + 
-                     t.powi(3) * self.end
-    }
-
-    pub fn derivative(&self, t: F) -> F {
-        let zero = F::from_f32(0.0).unwrap();
-        let one  = F::from_f32(1.0).unwrap();
-        assert!(zero <= t && t <= one);
-        self.derivative_unbounded(t)
-    }
-
-    pub fn derivative_unbounded(&self, t: F) -> F {
-        let t1 = F::from_f32(1.0).unwrap() - t;
-        t1.powi(2)     * (self.ctrl0 - self.start) * F::from_f32(3.0).unwrap() +
-        t1 * t         * (self.ctrl1 - self.ctrl0) * F::from_f32(6.0).unwrap() +
-             t.powi(2) * (self.end - self.ctrl1)   * F::from_f32(3.0).unwrap()
-    }
 }
+
+n_bezier!{BezCubePoly {
+    start: 1,
+    ctrl0: 3,
+    ctrl1: 3,
+    end:   1
+} derived {
+    ctrl0 - start: 1,
+    ctrl1 - ctrl0: 2,
+    end   - ctrl1: 1
+}}
