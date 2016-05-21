@@ -30,6 +30,7 @@ gfx_pipeline!{ pipe {
 fn main() {
     let builder = glutin::WindowBuilder::new()
         .with_dimensions(720, 720)
+        .with_multisampling(16)
         .with_title("Hello Bézier".into());
     let (window, mut device, mut factory, main_color, _) =
         gfx_window_glutin::init::<ColorFormat, DepthFormat>(builder);
