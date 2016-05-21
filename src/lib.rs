@@ -124,6 +124,17 @@ impl<F: Float> Div<F> for Vector<F> {
     }
 }
 
+impl<F: Float> Neg for Vector<F> {
+    type Output = Vector<F>;
+
+    fn neg(self) -> Vector<F> {
+        Vector {
+            x: -self.x,
+            y: -self.y
+        }
+    }
+}
+
 
 #[derive(Debug, Clone, Copy)]
 pub enum BezNode<F: Float> {
