@@ -29,7 +29,8 @@ gfx_pipeline!{ pipe {
 
 fn main() {
     let builder = glutin::WindowBuilder::new()
-        .with_title("Hello Square".into());
+        .with_dimensions(720, 720)
+        .with_title("Hello Bézier".into());
     let (window, mut device, mut factory, main_color, _) =
         gfx_window_glutin::init::<ColorFormat, DepthFormat>(builder);
     let mut encoder: gfx::Encoder<_, _> = factory.create_command_buffer().into();
@@ -47,18 +48,18 @@ fn main() {
     };
 
     let mut verts = [Vertex{ pos: [0.0, 0.0] }; 31];
-    let mut tangents = [Vertex{ pos: [0.0, 0.0] }; 62];
+    let mut perps = [Vertex{ pos: [0.0, 0.0] }; 62];
     for i in 0..verts.len() {
         let t = i as f32/(verts.len()-1) as f32;
 
         let interp = curve.interp(t);
         verts[i].pos = interp.into();
-        tangents[i*2] = verts[i];
-        tangents[i*2 + 1].pos = (curve.derivative(t).normalize()/10.0 + interp).into();
+        perps[i*2] = verts[i];
+        perps[i*2 + 1].pos = (curve.derivative(t).normalize().perp()/10.0 + interp).into();
     }
 
     let (vert_buffer, vert_slice) = factory.create_vertex_buffer_with_slice(&verts, ());
-    let (tan_buffer, tan_slice) = factory.create_vertex_buffer_with_slice(&tangents, ());
+    let (perp_buffer, perp_slice) = factory.create_vertex_buffer_with_slice(&perps, ());
     let mut data = pipe::Data {
         vbuf: vert_buffer.clone(),
         out: main_color
@@ -77,8 +78,8 @@ fn main() {
         data.vbuf = vert_buffer.clone();
         encoder.draw(&vert_slice, &pso, &data);
 
-        data.vbuf = tan_buffer.clone();
-        encoder.draw(&tan_slice, &pso, &data);
+        data.vbuf = perp_buffer.clone();
+        encoder.draw(&perp_slice, &pso, &data);
 
         encoder.flush(&mut device);
         window.swap_buffers().unwrap();

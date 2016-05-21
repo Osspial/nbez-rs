@@ -3,7 +3,7 @@ extern crate num;
 pub mod core;
 
 use std::convert::{Into, From, AsRef};
-use std::ops::{Add, Mul, Div};
+use std::ops::{Add, Mul, Div, Neg};
 use std::marker::PhantomData;
 use num::{Float, FromPrimitive};
 
@@ -92,9 +92,16 @@ impl_npoint!{2; Vector<F: Float> {
     y: F
 }, Point<F>}
 
-impl<F: Float> Vector<F> {
+impl<F: Float + FromPrimitive> Vector<F> {
     pub fn len(self) -> F {
         (self.x.powi(2) + self.y.powi(2)).sqrt()
+    }
+
+    pub fn perp(self) -> Vector<F> {
+        Vector {
+            x: -self.y,
+            y: self.x
+        }
     }
 
     pub fn normalize(self) -> Vector<F> {
@@ -221,7 +228,7 @@ impl<F: Float + FromPrimitive> BezCube<F> {
     pub fn interp(&self, t: F) -> Point<F> {
         Point {
             x: self.x.interp(t),
-            y: self.y.interp_unbounded(t) // The interp is already checked when we call x.interp, so we don't have to do it here
+            y: self.y.interp_unbounded(t) // The interp is already checked when we call x.interp, so we don't have to do it again here
         }
     }
 
