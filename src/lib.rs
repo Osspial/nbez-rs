@@ -1,86 +1,16 @@
 extern crate num;
 
+#[macro_use]
+mod macros;
+
 pub mod core;
 
-use std::convert::{Into, From, AsRef};
-use std::ops::{Add, Mul, Div, Neg};
+use std::convert::{Into, AsRef};
+use std::ops::{Mul, Div, Neg};
 use std::marker::PhantomData;
 use num::{Float, FromPrimitive};
 
 use core::BezCubePoly;
-
-macro_rules! npoint_ops {
-    ($lhs:ty; $rhs:ty = $output:ident<$g_name:ident: $g_ty:ident> {$($field:ident),*}) => {
-        impl<$g_name: $g_ty> Add<$rhs> for $lhs {
-            type Output = $output<$g_name>;
-
-            fn add(self, rhs: $rhs) -> $output<$g_name> {
-                $output {
-                    $($field: self.$field + rhs.$field),*
-                }
-            }
-        }
-    }
-}
-
-macro_rules! impl_npoint {
-    // auxiliary/entry point workaround made by durka42
-    // read the last rule of the macro first
-    (@go $dims: expr; $name:ident<$g_name:ident: $g_ty:ident> {$($field:ident: $f_ty:ty),*} $fields:tt $(,$sibling:ty)*) => {
-                                                              // ^ match the first duplicate of the fields
-                                                                                            // ^ keep the second one as a tt
-        #[derive(Debug, Clone, Copy)]
-        pub struct $name<$g_name: $g_ty> {
-            $(
-                pub $field: $f_ty
-            ),*
-        }
-
-        impl<$g_name: $g_ty> Into<[$g_name; $dims]> for $name<$g_name> {
-            fn into(self) -> [$g_name; $dims] {
-                [$(self.$field),*]
-            }
-        }
-
-        impl<$g_name: $g_ty> Into<($($f_ty),*)> for $name<$g_name> {
-            fn into(self) -> (F, F) {
-                ($(self.$field),*)
-            }
-        }
-
-        npoint_ops!($name<$g_name>; $name<$g_name> = $name<$g_name: $g_ty> {x, y});
-
-        $(
-            // pass the tt-wrapped fields to auxiliary macro
-            impl_npoint!(@sib $name $g_name $g_ty $sibling $fields);
-            npoint_ops!($name<$g_name>; $sibling = $name<$g_name: $g_ty> {x, y});
-        )*
-    };
-    
-    // auxiliary rule
-    (@sib $name:ident $g_name:ident $g_ty:ident $sibling:ty {$($field:ident: $f_ty:ty),*}) => {
-                                                // ^ finally destructure fields out of tt here
-        impl<$g_name: $g_ty> From<$sibling> for $name<$g_name> {
-            fn from(sib: $sibling) -> $name<$g_name> {
-                $name {
-                    $($field: sib.$field),*
-                }
-            }
-        }
-    };
-    
-    // entry point rule
-    ($dims: expr; $name:ident<$g_name:ident: $g_ty:ident> $fields:tt $(,$sibling:ty)*) => {
-                                                          // ^ match fields all together as a tt
-        impl_npoint!(@go
-            $dims;
-            $name<$g_name: $g_ty>
-            $fields // duplicate the fields
-            $fields
-            $(,$sibling)*
-        );
-    };
-}
 
 impl_npoint!{2; Point<F: Float> {
     x: F,
