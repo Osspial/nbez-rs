@@ -69,6 +69,15 @@ impl<F: Float> Neg for Vector2d<F> {
 }
 
 
+n_bezier!{BezPoly2o {
+    start: 1,
+    ctrl : 2,
+    end  : 1
+} derived {
+    ctrl - start: 1,
+    end  - ctrl:  1
+}}
+
 n_bezier!{BezPoly3o {
     start: 1,
     ctrl0: 3,
@@ -78,6 +87,51 @@ n_bezier!{BezPoly3o {
     ctrl0 - start: 1,
     ctrl1 - ctrl0: 2,
     end   - ctrl1: 1
+}}
+
+n_bezier!{BezPoly4o {
+    start: 1,
+    ctrl0: 4,
+    ctrl1: 6,
+    ctrl2: 4,
+    end:   1
+} derived {
+    ctrl0 - start: 1,
+    ctrl1 - ctrl0: 3,
+    ctrl2 - ctrl1: 3,
+    end   - ctrl1: 1
+}}
+
+n_bezier!{BezPoly5o {
+    start: 1,
+    ctrl0: 5,
+    ctrl1: 10,
+    ctrl2: 10,
+    ctrl3: 5,
+    end:   1
+} derived {
+    ctrl0 - start: 1,
+    ctrl1 - ctrl0: 4,
+    ctrl2 - ctrl1: 6,
+    ctrl3 - ctrl2: 4,
+    end   - ctrl3: 1
+}}
+
+n_bezier!{BezPoly6o {
+    start: 1,
+    ctrl0: 6,
+    ctrl1: 15,
+    ctrl2: 20,
+    ctrl3: 15,
+    ctrl4: 6,
+    end:   1
+} derived {
+    ctrl0 - start: 1,
+    ctrl1 - ctrl0: 5,
+    ctrl2 - ctrl1: 10,
+    ctrl3 - ctrl2: 10,
+    ctrl4 - ctrl3: 5,
+    end   - ctrl4: 1
 }}
 
 
