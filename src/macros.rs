@@ -90,7 +90,7 @@ macro_rules! n_bezier {
     }) => {
         #[derive(Debug, Clone)]
         pub struct $name<F> where F: ::num::Float + ::num::FromPrimitive {
-            $($field: F),+
+            $(pub $field: F),+
         }
 
         impl<F> $name<F> where F: ::num::Float + ::num::FromPrimitive {
