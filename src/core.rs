@@ -1,4 +1,4 @@
-n_bezier!{BezCubePoly {
+n_bezier!{BezPoly3o {
     start: 1,
     ctrl0: 3,
     ctrl1: 3,

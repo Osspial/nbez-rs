@@ -10,62 +10,62 @@ use std::ops::{Mul, Div, Neg};
 use std::marker::PhantomData;
 use num::{Float, FromPrimitive};
 
-use core::BezCubePoly;
+use core::BezPoly3o;
 
-impl_npoint!{2; Point<F: Float> {
+impl_npoint!{2; Point2d<F: Float> {
     x: F,
     y: F
-}, Vector<F>}
+}, Vector2d<F>}
 
-impl_npoint!{2; Vector<F: Float> {
+impl_npoint!{2; Vector2d<F: Float> {
     x: F,
     y: F
-}, Point<F>}
+}, Point2d<F>}
 
-impl<F: Float + FromPrimitive> Vector<F> {
+impl<F: Float + FromPrimitive> Vector2d<F> {
     pub fn len(self) -> F {
         (self.x.powi(2) + self.y.powi(2)).sqrt()
     }
 
-    pub fn perp(self) -> Vector<F> {
-        Vector {
+    pub fn perp(self) -> Vector2d<F> {
+        Vector2d {
             x: -self.y,
             y: self.x
         }
     }
 
-    pub fn normalize(self) -> Vector<F> {
+    pub fn normalize(self) -> Vector2d<F> {
         self / self.len()
     }
 }
 
-impl<F: Float> Mul<F> for Vector<F> {
-    type Output = Vector<F>;
+impl<F: Float> Mul<F> for Vector2d<F> {
+    type Output = Vector2d<F>;
 
-    fn mul(self, rhs: F) -> Vector<F> {
-        Vector {
+    fn mul(self, rhs: F) -> Vector2d<F> {
+        Vector2d {
             x: self.x * rhs,
             y: self.y * rhs
         }
     }
 }
 
-impl<F: Float> Div<F> for Vector<F> {
-    type Output = Vector<F>;
+impl<F: Float> Div<F> for Vector2d<F> {
+    type Output = Vector2d<F>;
 
-    fn div(self, rhs: F) -> Vector<F> {
-        Vector {
+    fn div(self, rhs: F) -> Vector2d<F> {
+        Vector2d {
             x: self.x / rhs,
             y: self.y / rhs
         }
     }
 }
 
-impl<F: Float> Neg for Vector<F> {
-    type Output = Vector<F>;
+impl<F: Float> Neg for Vector2d<F> {
+    type Output = Vector2d<F>;
 
-    fn neg(self) -> Vector<F> {
-        Vector {
+    fn neg(self) -> Vector2d<F> {
+        Vector2d {
             x: -self.x,
             y: -self.y
         }
@@ -75,7 +75,7 @@ impl<F: Float> Neg for Vector<F> {
 
 #[derive(Debug, Clone, Copy)]
 pub enum BezNode<F: Float> {
-    Point {
+    Point2d {
         x: F,
         y: F
     },
@@ -88,7 +88,7 @@ pub enum BezNode<F: Float> {
 
 impl<F: Float> BezNode<F> {
     pub fn new_point(x: F, y: F) -> BezNode<F> {
-        BezNode::Point {
+        BezNode::Point2d {
             x: x,
             y: y
         }
@@ -112,7 +112,7 @@ impl<F: Float> BezNode<F> {
     pub fn is_point(self) -> bool {
         use self::BezNode::*;
         match self {
-            Point{..} => true,
+            Point2d{..} => true,
             Control{..} => false
         }
     }
@@ -120,7 +120,7 @@ impl<F: Float> BezNode<F> {
     pub fn is_control(self) -> bool {
         use self::BezNode::*;
         match self {
-            Point{..} => false,
+            Point2d{..} => false,
             Control{..} => true
         }
     }
@@ -131,7 +131,7 @@ impl<F: Float> Into<[F; 2]> for BezNode<F> {
         use self::BezNode::*;
 
         match self {
-            Point{x, y}    |
+            Point2d{x, y}    |
             Control{x, y} => [x, y]
         }
     }
@@ -142,28 +142,28 @@ impl<F: Float> Into<(F, F)> for BezNode<F> {
         use self::BezNode::*;
 
         match self {
-            Point{x, y}    |
+            Point2d{x, y}    |
             Control{x, y} => (x, y)
         }
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct BezCube<F: Float + FromPrimitive> {
-    pub x: BezCubePoly<F>,
-    pub y: BezCubePoly<F>
+pub struct Bez3o2d<F: Float + FromPrimitive> {
+    pub x: BezPoly3o<F>,
+    pub y: BezPoly3o<F>
 }
 
-impl<F: Float + FromPrimitive> BezCube<F> {
-    pub fn interp(&self, t: F) -> Point<F> {
-        Point {
+impl<F: Float + FromPrimitive> Bez3o2d<F> {
+    pub fn interp(&self, t: F) -> Point2d<F> {
+        Point2d {
             x: self.x.interp(t),
             y: self.y.interp_unbounded(t) // The interp is already checked when we call x.interp, so we don't have to do it again here
         }
     }
 
-    pub fn derivative(&self, t: F) -> Vector<F> {
-        Vector {
+    pub fn derivative(&self, t: F) -> Vector2d<F> {
+        Vector2d {
             x: self.x.derivative(t),
             y: self.y.derivative_unbounded(t)
         }
@@ -171,17 +171,17 @@ impl<F: Float + FromPrimitive> BezCube<F> {
 }
 
 #[derive(Debug, Clone)]
-pub struct BezCubeChain<C, F> 
+pub struct BezChain3o2d<C, F> 
         where C: AsRef<[BezNode<F>]>,
               F: Float {
     container: C,
     float_type: PhantomData<F>
 }
 
-impl<C, F> BezCubeChain<C, F> 
+impl<C, F> BezChain3o2d<C, F> 
         where C: AsRef<[BezNode<F>]>,
               F: Float {
-    pub fn from_container(c: C) -> Result<BezCubeChain<C, F>, BevError> {
+    pub fn from_container(c: C) -> Result<BezChain3o2d<C, F>, BevError> {
         {
             let cslice = c.as_ref();
             if cslice.len() % 3 != 1 {
@@ -199,14 +199,14 @@ impl<C, F> BezCubeChain<C, F>
             }
         }
 
-        Ok(BezCubeChain {
+        Ok(BezChain3o2d {
             container: c,
             float_type: PhantomData
         })
     }
 
-    pub unsafe fn from_container_unchecked(c: C) -> BezCubeChain<C, F> {
-        BezCubeChain {
+    pub unsafe fn from_container_unchecked(c: C) -> BezChain3o2d<C, F> {
+        BezChain3o2d {
             container: c,
             float_type: PhantomData
         }
@@ -217,7 +217,7 @@ impl<C, F> BezCubeChain<C, F>
     }
 }
 
-impl<C, F> AsRef<C> for BezCubeChain<C, F> 
+impl<C, F> AsRef<C> for BezChain3o2d<C, F> 
         where C: AsRef<[BezNode<F>]>,
               F: Float {
 

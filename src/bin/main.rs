@@ -6,8 +6,8 @@ extern crate gfx_window_glutin;
 extern crate glutin;
 
 
-use bev::{BezCube};
-use bev::core::BezCubePoly;
+use bev::{Bez3o2d};
+use bev::core::BezPoly3o;
 
 use gfx::traits::FactoryExt;
 use gfx::{Device, Primitive};
@@ -43,9 +43,9 @@ fn main() {
         pipe::new()
     ).unwrap();
 
-    let curve = BezCube {
-        x: BezCubePoly::new(0.0, 0.0, 1.0, 1.0),
-        y: BezCubePoly::new(0.0, 1.0, 0.0, 1.0)
+    let curve = Bez3o2d {
+        x: BezPoly3o::new(0.0, 0.0, 1.0, 1.0),
+        y: BezPoly3o::new(0.0, 1.0, 0.0, 1.0)
     };
 
     let mut verts = [Vertex{ pos: [0.0, 0.0] }; 31];
