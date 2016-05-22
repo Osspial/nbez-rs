@@ -55,7 +55,7 @@ macro_rules! n_bezier {
 
             pub fn derivative_unbounded(&self, t: F) -> F {
                 let t1 = F::from_f32(1.0).unwrap() - t;
-                const COUNT: i32 = count!($($field),+) - 2;
+                const COUNT: i32 = count!($($dleft),+) - 1;
                 let mut factor = COUNT + 1;
 
                 $(
@@ -64,7 +64,7 @@ macro_rules! n_bezier {
                         t1.powi(factor) *
                         t.powi(COUNT-factor) *
                         (self.$dleft - self.$dright) *
-                        F::from_i32($dweight).unwrap();
+                        F::from_i32($dweight * (COUNT + 1)).unwrap();
                 )+
                 $($dleft +)+ F::from_f32(0.0).unwrap()
             }
