@@ -5,9 +5,7 @@ extern crate gfx;
 extern crate gfx_window_glutin;
 extern crate glutin;
 
-
-use bev::{Bez3o2d};
-use bev::core::BezPoly3o;
+use bev::{Bez3o2d, BezPoly3o};
 
 use gfx::traits::FactoryExt;
 use gfx::{Device, Primitive};

@@ -3,14 +3,10 @@ extern crate num;
 #[macro_use]
 mod macros;
 
-pub mod core;
-
 use std::convert::{Into, AsRef};
 use std::ops::{Mul, Div, Neg};
 use std::marker::PhantomData;
 use num::{Float, FromPrimitive};
-
-use core::BezPoly3o;
 
 impl_npoint!{2; Point2d<F: Float> {
     x: F,
@@ -71,6 +67,18 @@ impl<F: Float> Neg for Vector2d<F> {
         }
     }
 }
+
+
+n_bezier!{BezPoly3o {
+    start: 1,
+    ctrl0: 3,
+    ctrl1: 3,
+    end:   1
+} derived {
+    ctrl0 - start: 1,
+    ctrl1 - ctrl0: 2,
+    end   - ctrl1: 1
+}}
 
 
 #[derive(Debug, Clone, Copy)]
