@@ -152,14 +152,14 @@ macro_rules! n_bezier {
                 $($field +)+ F::from_f32(0.0).unwrap()
             }
 
-            pub fn derivative(&self, t: F) -> F {
+            pub fn slope(&self, t: F) -> F {
                 let zero = F::from_f32(0.0).unwrap();
                 let one  = F::from_f32(1.0).unwrap();
                 assert!(zero <= t && t <= one);
-                self.derivative_unbounded(t)
+                self.slope_unbounded(t)
             }
 
-            pub fn derivative_unbounded(&self, t: F) -> F {
+            pub fn slope_unbounded(&self, t: F) -> F {
                 let t1 = F::from_f32(1.0).unwrap() - t;
                 const COUNT: i32 = count!($($dleft),+) - 1;
                 let mut factor = COUNT + 1;

@@ -54,7 +54,7 @@ fn main() {
         let interp = curve.interp(t);
         verts[i].pos = interp.into();
         perps[i*2] = verts[i];
-        perps[i*2 + 1].pos = (curve.derivative(t).normalize().perp()/10.0 + interp).into();
+        perps[i*2 + 1].pos = (curve.slope(t).normalize().perp()/10.0 + interp).into();
     }
 
     let (vert_buffer, vert_slice) = factory.create_vertex_buffer_with_slice(&verts, ());

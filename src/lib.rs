@@ -178,10 +178,10 @@ impl<F: Float + FromPrimitive> Bez3o2d<F> {
         }
     }
 
-    pub fn derivative(&self, t: F) -> Vector2d<F> {
+    pub fn slope(&self, t: F) -> Vector2d<F> {
         Vector2d {
-            x: self.x.derivative(t),
-            y: self.y.derivative_unbounded(t)
+            x: self.x.slope(t),
+            y: self.y.slope_unbounded(t)
         }
     }
 }
