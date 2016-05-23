@@ -8,62 +8,16 @@ use std::ops::{Mul, Div, Neg};
 use std::marker::PhantomData;
 use num::{Float, FromPrimitive};
 
-impl_npoint!{2; Point2d<F: Float> {
-    x: F,
-    y: F
-}, Vector2d<F>}
+n_pointvector!{2; Point2d, Vector2d {
+    x,
+    y
+}}
 
-impl_npoint!{2; Vector2d<F: Float> {
-    x: F,
-    y: F
-}, Point2d<F>}
-
-impl<F: Float + FromPrimitive> Vector2d<F> {
-    pub fn len(self) -> F {
-        (self.x.powi(2) + self.y.powi(2)).sqrt()
-    }
-
+impl<F: Float> Vector2d<F> {
     pub fn perp(self) -> Vector2d<F> {
         Vector2d {
             x: -self.y,
             y: self.x
-        }
-    }
-
-    pub fn normalize(self) -> Vector2d<F> {
-        self / self.len()
-    }
-}
-
-impl<F: Float> Mul<F> for Vector2d<F> {
-    type Output = Vector2d<F>;
-
-    fn mul(self, rhs: F) -> Vector2d<F> {
-        Vector2d {
-            x: self.x * rhs,
-            y: self.y * rhs
-        }
-    }
-}
-
-impl<F: Float> Div<F> for Vector2d<F> {
-    type Output = Vector2d<F>;
-
-    fn div(self, rhs: F) -> Vector2d<F> {
-        Vector2d {
-            x: self.x / rhs,
-            y: self.y / rhs
-        }
-    }
-}
-
-impl<F: Float> Neg for Vector2d<F> {
-    type Output = Vector2d<F>;
-
-    fn neg(self) -> Vector2d<F> {
-        Vector2d {
-            x: -self.x,
-            y: -self.y
         }
     }
 }

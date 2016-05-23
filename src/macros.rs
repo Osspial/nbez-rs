@@ -1,76 +1,105 @@
 // Vector/Point macros
-macro_rules! npoint_ops {
-    ($lhs:ty; $rhs:ty = $output:ident<$g_name:ident: $g_ty:ident> {$($field:ident),*}) => {
-        impl<$g_name: $g_ty> ::std::ops::Add<$rhs> for $lhs {
-            type Output = $output<$g_name>;
+#[macro_export]
+macro_rules! n_pointvector {
+    (ops $lhs:ident; $rhs:ident {$($field:ident),*}) => {
+        impl<F: Float> ::std::ops::Add<$rhs<F>> for $lhs<F> {
+            type Output = $lhs<F>;
 
-            fn add(self, rhs: $rhs) -> $output<$g_name> {
-                $output {
+            fn add(self, rhs: $rhs<F>) -> $lhs<F> {
+                $lhs {
                     $($field: self.$field + rhs.$field),*
                 }
             }
         }
-    }
-}
 
-#[macro_export]
-macro_rules! impl_npoint {
-    // auxiliary/entry point workaround made by durka42
-    // read the last rule of the macro first
-    (@go $dims: expr; $name:ident<$g_name:ident: $g_ty:ident> {$($field:ident: $f_ty:ty),*} $fields:tt $(,$sibling:ty)*) => {
-                                                              // ^ match the first duplicate of the fields
-                                                                                            // ^ keep the second one as a tt
-        #[derive(Debug, Clone, Copy)]
-        pub struct $name<$g_name: $g_ty> {
-            $(
-                pub $field: $f_ty
-            ),*
+        impl<F: Float> ::std::ops::Sub<$rhs<F>> for $lhs<F> {
+            type Output = $lhs<F>;
+
+            fn sub(self, rhs: $rhs<F>) -> $lhs<F> {
+                $lhs {
+                    $($field: self.$field - rhs.$field),*
+                }
+            }
+        }
+    };
+
+    (float ops $name:ident {$($field:ident),+}) => {
+        impl<F: Float> Mul<F> for $name<F> {
+            type Output = $name<F>;
+
+            fn mul(self, rhs: F) -> $name<F> {
+                $name {
+                    $($field: self.$field * rhs),+
+                }
+            }
         }
 
-        impl<$g_name: $g_ty> ::std::convert::Into<[$g_name; $dims]> for $name<$g_name> {
-            fn into(self) -> [$g_name; $dims] {
+        impl<F: Float> Div<F> for $name<F> {
+            type Output = $name<F>;
+
+            fn div(self, rhs: F) -> $name<F> {
+                $name {
+                    $($field: self.$field / rhs),+
+                }
+            }
+        }
+
+        impl<F: Float> Neg for $name<F> {
+            type Output = $name<F>;
+
+            fn neg(self) -> $name<F> {
+                $name {
+                    $($field: -self.$field),+
+                }
+            }
+        }
+    };
+
+    (struct $dims:expr; $name:ident {$($field:ident: $f_ty:ident),+} $sibling:ident) => {
+        #[derive(Debug, Clone, Copy)]
+        pub struct $name<F: Float> {
+            $(pub $field: F),+
+        }
+
+        impl<F: Float> ::std::convert::Into<[F; $dims]> for $name<F> {
+            fn into(self) -> [F; $dims] {
                 [$(self.$field),*]
             }
         }
 
-        impl<$g_name: $g_ty> ::std::convert::Into<($($f_ty),*)> for $name<$g_name> {
-            fn into(self) -> (F, F) {
+        impl<F: Float> ::std::convert::Into<($($f_ty),*)> for $name<F> {
+            fn into(self) -> ($($f_ty),*) {
                 ($(self.$field),*)
             }
         }
 
-        npoint_ops!($name<$g_name>; $name<$g_name> = $name<$g_name: $g_ty> {x, y});
-
-        $(
-            // pass the tt-wrapped fields to auxiliary macro
-            impl_npoint!(@sib $name $g_name $g_ty $sibling $fields);
-            npoint_ops!($name<$g_name>; $sibling = $name<$g_name: $g_ty> {x, y});
-        )*
-    };
-    
-    // auxiliary rule
-    (@sib $name:ident $g_name:ident $g_ty:ident $sibling:ty {$($field:ident: $f_ty:ty),*}) => {
-                                                // ^ finally destructure fields out of tt here
-        impl<$g_name: $g_ty> ::std::convert::From<$sibling> for $name<$g_name> {
-            fn from(sib: $sibling) -> $name<$g_name> {
+        impl<F: Float> ::std::convert::From<$sibling<F>> for $name<F> {
+            fn from(sib: $sibling<F>) -> $name<F> {
                 $name {
                     $($field: sib.$field),*
                 }
             }
         }
+
+        n_pointvector!(ops $name; $sibling {$($field),+});
+        n_pointvector!(ops $name; $name {$($field),+});
+        n_pointvector!(float ops $name {$($field),+});
     };
-    
-    // entry point rule
-    ($dims: expr; $name:ident<$g_name:ident: $g_ty:ident> $fields:tt $(,$sibling:ty)*) => {
-                                                          // ^ match fields all together as a tt
-        impl_npoint!(@go
-            $dims;
-            $name<$g_name: $g_ty>
-            $fields // duplicate the fields
-            $fields
-            $(,$sibling)*
-        );
-    };
+
+    ($dims:expr; $p_name:ident, $v_name:ident {$($field:ident),+}) => {
+        n_pointvector!(struct $dims; $p_name {$($field: F),+} $v_name);
+        n_pointvector!(struct $dims; $v_name {$($field: F),+} $p_name);
+
+        impl<F: Float + FromPrimitive> $v_name<F> {
+            pub fn len(self) -> F {
+                ($(self.$field.powi(2) +)+ F::from_f32(0.0).unwrap()).sqrt()
+            }
+
+            pub fn normalize(self) -> $v_name<F> {
+                self / self.len()
+            }
+        }
+    }
 }
 
 
