@@ -15,10 +15,7 @@ pub fn check_t_bounds<F: Float + FromPrimitive>(t: F) {
     assert!(zero <= t && t <= one);
 }
 
-n_pointvector!{2; Point2d, Vector2d {
-    x,
-    y
-}}
+include!(concat!(env!("OUT_DIR"), "/macro_invocs.rs"));
 
 impl<F: Float> Vector2d<F> {
     pub fn perp(self) -> Vector2d<F> {
@@ -28,87 +25,6 @@ impl<F: Float> Vector2d<F> {
         }
     }
 }
-
-
-n_bezier!{BezPoly2o {
-    start: 1,
-    ctrl : 2,
-    end  : 1
-} derived {
-    ctrl - start: 1,
-    end  - ctrl:  1
-}}
-
-n_bezier!{BezPoly3o {
-    start: 1,
-    ctrl0: 3,
-    ctrl1: 3,
-    end:   1
-} derived {
-    ctrl0 - start: 1,
-    ctrl1 - ctrl0: 2,
-    end   - ctrl1: 1
-}}
-
-n_bezier!{BezPoly4o {
-    start: 1,
-    ctrl0: 4,
-    ctrl1: 6,
-    ctrl2: 4,
-    end:   1
-} derived {
-    ctrl0 - start: 1,
-    ctrl1 - ctrl0: 3,
-    ctrl2 - ctrl1: 3,
-    end   - ctrl1: 1
-}}
-
-n_bezier!{BezPoly5o {
-    start: 1,
-    ctrl0: 5,
-    ctrl1: 10,
-    ctrl2: 10,
-    ctrl3: 5,
-    end:   1
-} derived {
-    ctrl0 - start: 1,
-    ctrl1 - ctrl0: 4,
-    ctrl2 - ctrl1: 6,
-    ctrl3 - ctrl2: 4,
-    end   - ctrl3: 1
-}}
-
-n_bezier!{BezPoly6o {
-    start: 1,
-    ctrl0: 6,
-    ctrl1: 15,
-    ctrl2: 20,
-    ctrl3: 15,
-    ctrl4: 6,
-    end:   1
-} derived {
-    ctrl0 - start: 1,
-    ctrl1 - ctrl0: 5,
-    ctrl2 - ctrl1: 10,
-    ctrl3 - ctrl2: 10,
-    ctrl4 - ctrl3: 5,
-    end   - ctrl4: 1
-}}
-
-
-bez_composite!{ Bez3o2d<BezPoly3o> {
-    x: 
-        x_start,
-        x_ctrl0,
-        x_ctrl1,
-        x_end;
-    y:
-        y_start,
-        y_ctrl0,
-        y_ctrl1,
-        y_end;
-} -> <Point2d; Vector2d>}
-
 
 
 #[derive(Debug, Clone, Copy)]
