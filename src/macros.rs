@@ -177,7 +177,7 @@ macro_rules! n_bezier {
 
 macro_rules! bez_composite {
     ($name:ident<$poly:ident> {
-        $($field:ident),+
+        $($field:ident: $($p_field:ident),+;)+
     } -> <$point:ident; $vector:ident>) => {
         #[derive(Debug, Clone)]
         pub struct $name<F: Float + FromPrimitive> {
@@ -185,6 +185,12 @@ macro_rules! bez_composite {
         }
 
         impl<F: Float + FromPrimitive> $name<F> {
+            pub fn new($($($p_field: F),+),+) -> $name<F> {
+                $name {
+                    $($field: $poly::new($($p_field),+)),+
+                }
+            }
+
             pub fn interp(&self, t: F) -> $point<F> {
                 $crate::check_t_bounds(t);
                 self.interp_unbounded(t)

@@ -95,10 +95,20 @@ n_bezier!{BezPoly6o {
     end   - ctrl4: 1
 }}
 
+
 bez_composite!{ Bez3o2d<BezPoly3o> {
-    x,
-    y
+    x: 
+        x_start,
+        x_ctrl0,
+        x_ctrl1,
+        x_end;
+    y:
+        y_start,
+        y_ctrl0,
+        y_ctrl1,
+        y_end;
 } -> <Point2d; Vector2d>}
+
 
 
 #[derive(Debug, Clone, Copy)]
