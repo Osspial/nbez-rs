@@ -8,6 +8,13 @@ use std::ops::{Mul, Div, Neg};
 use std::marker::PhantomData;
 use num::{Float, FromPrimitive};
 
+#[inline]
+pub fn check_t_bounds<F: Float + FromPrimitive>(t: F) {
+    let zero = F::from_f32(0.0).unwrap();
+    let one  = F::from_f32(1.0).unwrap();
+    assert!(zero <= t && t <= one);
+}
+
 n_pointvector!{2; Point2d, Vector2d {
     x,
     y
@@ -88,6 +95,11 @@ n_bezier!{BezPoly6o {
     end   - ctrl4: 1
 }}
 
+bez_composite!{ Bez3o2d<BezPoly3o> {
+    x,
+    y
+} -> <Point2d; Vector2d>}
+
 
 #[derive(Debug, Clone, Copy)]
 pub enum BezNode<F: Float> {
@@ -160,28 +172,6 @@ impl<F: Float> Into<(F, F)> for BezNode<F> {
         match self {
             Point2d{x, y}    |
             Control{x, y} => (x, y)
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Bez3o2d<F: Float + FromPrimitive> {
-    pub x: BezPoly3o<F>,
-    pub y: BezPoly3o<F>
-}
-
-impl<F: Float + FromPrimitive> Bez3o2d<F> {
-    pub fn interp(&self, t: F) -> Point2d<F> {
-        Point2d {
-            x: self.x.interp(t),
-            y: self.y.interp_unbounded(t) // The interp is already checked when we call x.interp, so we don't have to do it again here
-        }
-    }
-
-    pub fn slope(&self, t: F) -> Vector2d<F> {
-        Vector2d {
-            x: self.x.slope(t),
-            y: self.y.slope_unbounded(t)
         }
     }
 }

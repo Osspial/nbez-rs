@@ -130,9 +130,7 @@ macro_rules! n_bezier {
             }
 
             pub fn interp(&self, t: F) -> F {
-                let zero = F::from_f32(0.0).unwrap();
-                let one  = F::from_f32(1.0).unwrap();
-                assert!(zero <= t && t <= one);
+                $crate::check_t_bounds(t);
                 self.interp_unbounded(t)
             }
 
@@ -153,9 +151,7 @@ macro_rules! n_bezier {
             }
 
             pub fn slope(&self, t: F) -> F {
-                let zero = F::from_f32(0.0).unwrap();
-                let one  = F::from_f32(1.0).unwrap();
-                assert!(zero <= t && t <= one);
+                $crate::check_t_bounds(t);
                 self.slope_unbounded(t)
             }
 
@@ -173,6 +169,42 @@ macro_rules! n_bezier {
                         F::from_i32($dweight * (COUNT + 1)).unwrap();
                 )+
                 $($dleft +)+ F::from_f32(0.0).unwrap()
+            }
+        }
+    }
+}
+
+
+macro_rules! bez_composite {
+    ($name:ident<$poly:ident> {
+        $($field:ident),+
+    } -> <$point:ident; $vector:ident>) => {
+        #[derive(Debug, Clone)]
+        pub struct $name<F: Float + FromPrimitive> {
+            $(pub $field: $poly<F>),+
+        }
+
+        impl<F: Float + FromPrimitive> $name<F> {
+            pub fn interp(&self, t: F) -> $point<F> {
+                $crate::check_t_bounds(t);
+                self.interp_unbounded(t)
+            }
+
+            pub fn interp_unbounded(&self, t: F) -> $point<F> {                
+                $point {
+                    $($field: self.$field.interp_unbounded(t)),+
+                }
+            }
+
+            pub fn slope(&self, t: F) -> $vector<F> {
+                $crate::check_t_bounds(t);
+                self.slope_unbounded(t)
+            }
+
+            pub fn slope_unbounded(&self, t: F) -> $vector<F> {                
+                $vector {
+                    $($field: self.$field.slope_unbounded(t)),+
+                }
             }
         }
     }
