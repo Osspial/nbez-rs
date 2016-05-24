@@ -30,12 +30,13 @@ fn main() {
         writeln!(file, "}}}}").unwrap();
     }
 
-    // Create bezier polynomials
+    // Create one-dimensional bezier polynomials
     for order in 2..(MAX_ORDER + 1) {
         writeln!(file, "n_bezier!{{BezPoly{}o {{", order).unwrap();
         for o in 0..(order + 1) {
             write!(file, "    {}: {}", get_param_name(o, order), combination(order, o)).unwrap();
 
+            // Insert commas necessary to seperate parameter names. 
             if o != order {
                 writeln!(file, ",")
             } else {
@@ -43,11 +44,15 @@ fn main() {
             }.unwrap();
         }
 
+
+        // Order of the derivative of the polynomial
+        let dorder = order - 1;
+        
         writeln!(file, "}} derived {{").unwrap();
         for o in 0..order {
-            write!(file, "    {} - {}: {}", get_param_name(o+1, order), get_param_name(o, order), combination(order-1, o)).unwrap();
+            write!(file, "    {} - {}: {}", get_param_name(o+1, order), get_param_name(o, order), combination(dorder, o)).unwrap();
             
-            if o != order - 1 {
+            if o != dorder {
                 writeln!(file, ",")
             } else {
                 writeln!(file, "")
