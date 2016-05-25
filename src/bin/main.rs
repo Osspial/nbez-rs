@@ -36,7 +36,7 @@ fn main() {
     let sset = factory.create_shader_set(VERT, FRAG).unwrap();
     let pso = factory.create_pipeline_state(
         &sset,
-        Primitive::LineStrip,
+        Primitive::TriangleStrip,
         Rasterizer::new_fill(),
         pipe::new()
     ).unwrap();
@@ -53,14 +53,16 @@ fn main() {
 
         let interp = curve.interp(t);
         verts[i].pos = interp.into();
-        perps[i*2] = verts[i];
-        perps[i*2 + 1].pos = (curve.slope(t).normalize().perp()/10.0 + interp).into();
+
+        let perp = curve.slope(t).normalize().perp() * 0.01;
+        perps[i*2].pos = (-perp + interp).into();
+        perps[i*2 + 1].pos = (perp + interp).into();
     }
 
-    let (vert_buffer, vert_slice) = factory.create_vertex_buffer_with_slice(&verts, ());
+    // let (vert_buffer, vert_slice) = factory.create_vertex_buffer_with_slice(&verts, ());
     let (perp_buffer, perp_slice) = factory.create_vertex_buffer_with_slice(&perps, ());
     let mut data = pipe::Data {
-        vbuf: vert_buffer.clone(),
+        vbuf: perp_buffer.clone(),
         out: main_color
     };
 
@@ -74,8 +76,8 @@ fn main() {
 
         encoder.clear(&data.out, [0.0, 0.0, 0.0, 1.0]);
 
-        data.vbuf = vert_buffer.clone();
-        encoder.draw(&vert_slice, &pso, &data);
+        // data.vbuf = vert_buffer.clone();
+        // encoder.draw(&vert_slice, &pso, &data);
 
         data.vbuf = perp_buffer.clone();
         encoder.draw(&perp_slice, &pso, &data);
