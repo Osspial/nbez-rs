@@ -23,6 +23,7 @@ gfx_vertex_struct!{ Vertex {
 
 gfx_pipeline!{ pipe {
     vbuf: gfx::VertexBuffer<Vertex> = (),
+    offset: gfx::Global<[f32; 2]> = "offset",
     out: gfx::RenderTarget<ColorFormat> = "r_target",
 }}
 
@@ -47,23 +48,35 @@ fn main() {
         0.0, 1.0, 0.0, 1.0
     );
 
-    let mut verts = [Vertex{ pos: [0.0, 0.0], col: [1.0, 1.0, 1.0] }; 31];
+    let verts = [Vertex{ pos: [0.0, 0.0], col: [1.0, 1.0, 1.0] }; 31];
     let mut perps = [Vertex{ pos: [0.0, 0.0], col: [1.0, 1.0, 1.0] }; 62];
     for i in 0..verts.len() {
         let t = i as f32/(verts.len()-1) as f32;
 
         let interp = curve.interp(t);
-        verts[i].pos = interp.into();
 
         let perp = curve.slope(t).normalize().perp() * 0.01;
         perps[i*2].pos = (-perp + interp).into();
         perps[i*2 + 1].pos = (perp + interp).into();
     }
 
-    // let (vert_buffer, vert_slice) = factory.create_vertex_buffer_with_slice(&verts, ());
+    let circle = gen_circle(16, 0.02, [1.0, 0.0, 0.0]);
+    let mut indices = vec![0u16; 42];
+    for (ind, i) in indices.iter_mut().enumerate() {
+        let ind = ind + 3;
+        if ind % 3 == 1 {
+            *i = ind as u16/3;
+        } else if ind % 3 == 2 {
+            *i = ind as u16/3 + 1
+        }
+    }
+    // println!("{:#?}", circle);
+
     let (perp_buffer, perp_slice) = factory.create_vertex_buffer_with_slice(&perps, ());
+    let (cir_buffer, cir_slice) = factory.create_vertex_buffer_with_slice(&circle, &indices[..]);
     let mut data = pipe::Data {
         vbuf: perp_buffer.clone(),
+        offset: [0.0, 0.0],
         out: main_color
     };
 
@@ -77,11 +90,20 @@ fn main() {
 
         encoder.clear(&data.out, [0.0, 0.0, 0.0, 1.0]);
 
-        // data.vbuf = vert_buffer.clone();
-        // encoder.draw(&vert_slice, &pso, &data);
-
+        data.offset = [0.0, 0.0];
         data.vbuf = perp_buffer.clone();
         encoder.draw(&perp_slice, &pso, &data);
+
+        data.vbuf = cir_buffer.clone();
+        data.offset = curve.start().into();
+        encoder.draw(&cir_slice, &pso, &data);
+        data.offset = curve.ctrl0().into();
+        encoder.draw(&cir_slice, &pso, &data);
+        data.offset = curve.ctrl1().into();
+        encoder.draw(&cir_slice, &pso, &data);
+        data.offset = curve.end().into();
+        encoder.draw(&cir_slice, &pso, &data);
+
 
         encoder.flush(&mut device);
         window.swap_buffers().unwrap();
@@ -89,8 +111,24 @@ fn main() {
     }
 }
 
+fn gen_circle(divs: u16, scale: f32, col: [f32; 3]) -> Vec<Vertex> {
+    use std::f32::consts::PI;
+    let mut verts = vec![Vertex{ pos: [0.0, 0.0], col: col}; divs as usize];
+
+    for d in 0..divs {
+        let theta = 2.0 * PI * (d as f32/divs as f32);
+        let d = d as usize;
+        verts[d].pos[0] = theta.sin() * scale;
+        verts[d].pos[1] = theta.cos() * scale;
+    }
+
+    verts
+}
+
 const VERT: &'static [u8] = br#"
     #version 150 core
+
+    uniform vec2 offset;
 
     in vec2 v_pos;
     in vec3 v_col;
@@ -98,7 +136,7 @@ const VERT: &'static [u8] = br#"
 
     void main() {
         f_col = vec4(v_col, 1.0);
-        gl_Position = vec4(v_pos, 0.0, 1.0);
+        gl_Position = vec4(v_pos + offset, 0.0, 1.0);
     }
 "#;
 
