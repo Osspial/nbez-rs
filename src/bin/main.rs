@@ -18,6 +18,7 @@ pub type DepthFormat = gfx::format::DepthStencil;
 
 gfx_vertex_struct!{ Vertex {
     pos: [f32; 2] = "v_pos",
+    col: [f32; 3] = "v_col",
 }}
 
 gfx_pipeline!{ pipe {
@@ -46,8 +47,8 @@ fn main() {
         0.0, 1.0, 0.0, 1.0
     );
 
-    let mut verts = [Vertex{ pos: [0.0, 0.0] }; 31];
-    let mut perps = [Vertex{ pos: [0.0, 0.0] }; 62];
+    let mut verts = [Vertex{ pos: [0.0, 0.0], col: [1.0, 1.0, 1.0] }; 31];
+    let mut perps = [Vertex{ pos: [0.0, 0.0], col: [1.0, 1.0, 1.0] }; 62];
     for i in 0..verts.len() {
         let t = i as f32/(verts.len()-1) as f32;
 
@@ -92,8 +93,11 @@ const VERT: &'static [u8] = br#"
     #version 150 core
 
     in vec2 v_pos;
+    in vec3 v_col;
+    out vec4 f_col;
 
     void main() {
+        f_col = vec4(v_col, 1.0);
         gl_Position = vec4(v_pos, 0.0, 1.0);
     }
 "#;
@@ -101,9 +105,10 @@ const VERT: &'static [u8] = br#"
 const FRAG: &'static [u8] = br#"
     #version 150 core
 
+    in vec4 f_col;
     out vec4 r_target;
 
     void main() {
-        r_target = vec4(1.0, 1.0, 1.0, 1.0);
+        r_target = f_col;
     }
 "#;
