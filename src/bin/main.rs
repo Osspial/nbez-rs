@@ -48,16 +48,16 @@ fn main() {
         0.0, 1.0, 0.0, 1.0
     );
 
-    let verts = [Vertex{ pos: [0.0, 0.0], col: [1.0, 1.0, 1.0] }; 31];
-    let mut perps = [Vertex{ pos: [0.0, 0.0], col: [1.0, 1.0, 1.0] }; 62];
-    for i in 0..verts.len() {
-        let t = i as f32/(verts.len()-1) as f32;
+    const SAMPLES: usize = 31;
+    let mut cverts = [Vertex{ pos: [0.0, 0.0], col: [1.0, 1.0, 1.0] }; SAMPLES * 2];
+    for i in 0..SAMPLES {
+        let t = i as f32/(SAMPLES-1) as f32;
 
         let interp = curve.interp(t);
 
         let perp = curve.slope(t).normalize().perp() * 0.01;
-        perps[i*2].pos = (-perp + interp).into();
-        perps[i*2 + 1].pos = (perp + interp).into();
+        cverts[i*2].pos = (-perp + interp).into();
+        cverts[i*2 + 1].pos = (perp + interp).into();
     }
 
     let circle = gen_circle(16, 0.02, [1.0, 0.0, 0.0]);
@@ -70,12 +70,11 @@ fn main() {
             *i = ind as u16/3 + 1
         }
     }
-    // println!("{:#?}", circle);
 
-    let (perp_buffer, perp_slice) = factory.create_vertex_buffer_with_slice(&perps, ());
+    let (cvert_buffer, cvert_slice) = factory.create_vertex_buffer_with_slice(&cverts, ());
     let (cir_buffer, cir_slice) = factory.create_vertex_buffer_with_slice(&circle, &indices[..]);
     let mut data = pipe::Data {
-        vbuf: perp_buffer.clone(),
+        vbuf: cvert_buffer.clone(),
         offset: [0.0, 0.0],
         out: main_color
     };
@@ -91,8 +90,8 @@ fn main() {
         encoder.clear(&data.out, [0.0, 0.0, 0.0, 1.0]);
 
         data.offset = [0.0, 0.0];
-        data.vbuf = perp_buffer.clone();
-        encoder.draw(&perp_slice, &pso, &data);
+        data.vbuf = cvert_buffer.clone();
+        encoder.draw(&cvert_slice, &pso, &data);
 
         data.vbuf = cir_buffer.clone();
         data.offset = curve.start().into();
