@@ -179,7 +179,7 @@ macro_rules! bez_composite {
     ($name:ident<$poly:ident> {
         $($field:ident: $($n_field:ident),+;)+
     } -> <$point:ident; $vector:ident>;
-        $($p_field:ident: $($s_field:ident),+;)+) => 
+        $($p_field:ident, $set_field:ident: $($s_field:ident),+;)+) => 
     {
         #[derive(Debug, Clone)]
         pub struct $name<F: ::num::Float + ::num::FromPrimitive> {
@@ -198,6 +198,10 @@ macro_rules! bez_composite {
                     $point {
                         $($s_field: self.$s_field.$p_field),+
                     }
+                }
+
+                pub fn $set_field(&mut self, $($s_field: F),+) {
+                    $(self.$s_field.$p_field = $s_field;)+
                 }
             )+
 

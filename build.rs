@@ -82,7 +82,7 @@ fn main() {
             writeln!(file, "}} -> <Point{0}d; Vector{0}d>;", dim).unwrap();
 
             for o in 0..(order + 1) {
-                write!(file, "    {}:", get_param_name(o, order)).unwrap();
+                write!(file, "    {0}, set_{0}:", get_param_name(o, order)).unwrap();
 
                 for (i, dt) in dim_tags[0..dim].iter().enumerate() {
                     write!(file, " {}", dt).unwrap();
