@@ -1,5 +1,4 @@
 // Vector/Point macros
-#[macro_export]
 macro_rules! n_pointvector {
     (ops $lhs:ident; $rhs:ident {$($field:ident),*}) => {
         impl<F: Float> ::std::ops::Add<$rhs<F>> for $lhs<F> {
@@ -110,7 +109,6 @@ macro_rules! count {
     ($($element:tt),*) => {{$(count!($element) +)* 0}};
 }
 
-#[macro_export]
 macro_rules! n_bezier {
     ($name:ident {
         $($field:ident: $weight:expr),+
@@ -169,6 +167,25 @@ macro_rules! n_bezier {
                         F::from_i32($dweight * (COUNT + 1)).unwrap();
                 )+
                 $($dleft +)+ F::from_f32(0.0).unwrap()
+            }
+        }
+
+        impl<F> ::std::ops::Deref for $name<F> where F: ::num::Float + ::num::FromPrimitive {
+            type Target = [F];
+            fn deref(&self) -> &[F] {
+                use std::slice;
+                unsafe {
+                    slice::from_raw_parts(self as *const $name<F> as *const F, count!($($field),+))
+                }
+            }
+        }
+
+        impl<F> ::std::ops::DerefMut for $name<F> where F: ::num::Float + ::num::FromPrimitive {
+            fn deref_mut(&mut self) -> &mut [F] {
+                use std::slice;
+                unsafe {
+                    slice::from_raw_parts_mut(self as *mut $name<F> as *mut F, count!($($field),+))
+                }
             }
         }
     }
