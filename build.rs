@@ -66,34 +66,33 @@ fn main() {
         for order in 2..(MAX_ORDER + 1) {        
             writeln!(file, "bez_composite!{{Bez{0}o{1}d<BezPoly{0}o> {{", order, dim).unwrap();
 
-            for dt in &dim_tags[0..dim] {
-                writeln!(file, "    {}:", dt).unwrap();
-
-                for o in 0..(order + 1) {
-                    write!(file, "        {}_{}", dt, get_param_name(o, order)).unwrap();
-
-                    if o == order {
-                        writeln!(file, ";")
-                    } else {
-                        writeln!(file, ",")
-                    }.unwrap();
-                }
-            }
-            writeln!(file, "}} -> <Point{0}d; Vector{0}d>;", dim).unwrap();
-
             for o in 0..(order + 1) {
-                write!(file, "    {0}, set_{0}:", get_param_name(o, order)).unwrap();
+                let param_name = get_param_name(o, order);
+                write!(file, "    {}:", param_name).unwrap();
 
-                for (i, dt) in dim_tags[0..dim].iter().enumerate() {
-                    write!(file, " {}", dt).unwrap();
+                for dt in &dim_tags[0..dim] {
+                    write!(file, " {}_{}", dt, param_name).unwrap();
 
-                    if i != dim-1 {
+                    if *dt != dim_tags[dim-1] {
                         write!(file, ",").unwrap();
                     }
                 }
                 writeln!(file, ";").unwrap();
             }
 
+            writeln!(file, "}} -> <Point{0}d; Vector{0}d>;", dim).unwrap();
+
+            for dt in &dim_tags[0..dim] {
+                write!(file, "    {} =", dt).unwrap();
+
+                for o in 0..(order + 1) {
+                    write!(file, " {}", get_param_name(o, order)).unwrap();
+                    if o != order {
+                        write!(file, ",").unwrap();
+                    }
+                }
+                writeln!(file, ";").unwrap();
+            }
             writeln!(file, "}}").unwrap();
         }
     }

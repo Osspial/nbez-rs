@@ -43,9 +43,11 @@ fn main() {
         pipe::new()
     ).unwrap();
 
-    let curve = Bez3o2d::new(
-        0.0, 0.0, 1.0, 1.0,
-        0.0, 1.0, 0.0, 1.0
+    let mut curve = Bez3o2d::new(
+        -0.5, -0.5,
+        -0.5,  0.5,
+         0.5, -0.5,
+         0.5,  0.5
     );
 
     const SAMPLES: usize = 31;
@@ -94,13 +96,13 @@ fn main() {
         encoder.draw(&cvert_slice, &pso, &data);
 
         data.vbuf = cir_buffer.clone();
-        data.offset = curve.start().into();
+        data.offset = curve.start.into();
         encoder.draw(&cir_slice, &pso, &data);
-        data.offset = curve.ctrl0().into();
+        data.offset = curve.ctrl0.into();
         encoder.draw(&cir_slice, &pso, &data);
-        data.offset = curve.ctrl1().into();
+        data.offset = curve.ctrl1.into();
         encoder.draw(&cir_slice, &pso, &data);
-        data.offset = curve.end().into();
+        data.offset = curve.end.into();
         encoder.draw(&cir_slice, &pso, &data);
 
 
