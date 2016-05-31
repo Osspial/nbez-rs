@@ -238,5 +238,24 @@ macro_rules! bez_composite {
                 $vector::new($($dim.slope_unbounded(t)),+)
             }
         }
+
+        impl<F> ::std::ops::Deref for $name<F> where F: ::num::Float + ::num::FromPrimitive {
+            type Target = [$point<F>];
+            fn deref(&self) -> &[$point<F>] {
+                use std::slice;
+                unsafe {
+                    slice::from_raw_parts(self as *const $name<F> as *const $point<F>, count!($($field),+))
+                }
+            }
+        }
+
+        impl<F> ::std::ops::DerefMut for $name<F> where F: ::num::Float + ::num::FromPrimitive {
+            fn deref_mut(&mut self) -> &mut [$point<F>] {
+                use std::slice;
+                unsafe {
+                    slice::from_raw_parts_mut(self as *mut $name<F> as *mut $point<F>, count!($($field),+))
+                }
+            }
+        }
     };
 }
