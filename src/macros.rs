@@ -123,7 +123,7 @@ macro_rules! n_bezier {
     } derived {
         $($dleft:ident - $dright:ident: $dweight:expr),+
     }) => {
-        #[derive(Debug, Clone)]
+        #[derive(Debug, Clone, Copy)]
         pub struct $name<F> where F: ::num::Float + ::num::FromPrimitive {
             $(pub $field: F),+
         }
@@ -206,7 +206,7 @@ macro_rules! bez_composite {
     } -> <$point:ident; $vector:ident>;
         $($dim:ident = $($dfield:ident),+;)+) => 
     {
-        #[derive(Debug, Clone)]
+        #[derive(Debug, Clone, Copy)]
         pub struct $name<F: ::num::Float + ::num::FromPrimitive> {
             $(pub $field: $point<F>),+
         }
