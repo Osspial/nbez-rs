@@ -23,6 +23,7 @@ gfx_vertex_struct!{ Vertex {
 
 gfx_pipeline!{ pipe {
     vbuf: gfx::VertexBuffer<Vertex> = (),
+    window_matrix: gfx::Global<[[f32; 2]; 2]> = "window_matrix",
     offset: gfx::Global<[f32; 2]> = "offset",
     out: gfx::RenderTarget<ColorFormat> = "r_target",
 }}
@@ -35,6 +36,7 @@ fn main() {
         .with_multisampling(16)
         .with_title("Hello Bézier".into());
     let (window, mut device, mut factory, main_color, _) =
+    let (window, mut device, mut factory, main_color, mut main_depth) =
         gfx_window_glutin::init::<ColorFormat, DepthFormat>(builder);
     let mut encoder: gfx::Encoder<_, _> = factory.create_command_buffer().into();
     let sset = factory.create_shader_set(VERT, FRAG).unwrap();
@@ -64,6 +66,11 @@ fn main() {
         }
     }
 
+    let window_matrix: [[f32; 2]; 2] = [
+        [1.0, 0.0],
+        [0.0, 1.0],
+    ];
+
     // A vec of curve vertices
     const SAMPLES: usize = 31;
     let mut cverts = [Vertex{ pos: [0.0, 0.0], col: [1.0, 1.0, 1.0] }; SAMPLES * 2];
@@ -79,6 +86,7 @@ fn main() {
     let (cir_buffer, cir_slice) = factory.create_vertex_buffer_with_slice(&circle, &indices[..]);
     let mut data = pipe::Data {
         vbuf: cvert_buffer.clone(),
+        window_matrix: window_matrix,
         offset: [0.0, 0.0],
         out: main_color
     };
@@ -91,10 +99,18 @@ fn main() {
         for event in window.poll_events() {
             match event {
                 Event::Closed => break 'main,
-                Event::Resized(x, y) => {win_x = x; win_y = y;}
+                Event::Resized(x, y) => {
+                    gfx_window_glutin::update_views(&window, &mut data.out, &mut main_depth);
+                    win_x = x; 
+                    win_y = y;
+                    data.window_matrix = [
+                        [720.0/win_x as f32, 0.0],
+                        [0.0, 720.0/win_y as f32]
+                    ];
+                }
                 Event::MouseMoved(x, y) => {
-                    mox = pix_to_float(x, win_x); 
-                    moy = -pix_to_float(y, win_y);
+                    mox =  pix_to_float(x, win_x) / data.window_matrix[0][0]; 
+                    moy = -pix_to_float(y, win_y) / data.window_matrix[1][1];
                 }
                 Event::MouseInput(ElementState::Pressed, MouseButton::Left) => {
                     for (i, c) in curve.iter().enumerate() {
@@ -176,6 +192,7 @@ const VERT: &'static [u8] = br#"
     #version 150 core
 
     uniform vec2 offset;
+    uniform mat2 window_matrix;
 
     in vec2 v_pos;
     in vec3 v_col;
@@ -183,7 +200,7 @@ const VERT: &'static [u8] = br#"
 
     void main() {
         f_col = vec4(v_col, 1.0);
-        gl_Position = vec4(v_pos + offset, 0.0, 1.0);
+        gl_Position = vec4(window_matrix * (v_pos + offset), 0.0, 1.0);
     }
 "#;
 
