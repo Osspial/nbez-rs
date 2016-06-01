@@ -3,8 +3,6 @@ extern crate num;
 #[macro_use]
 mod macros;
 
-use std::convert::{Into, AsRef};
-use std::ops::{Mul, Div, Neg};
 use std::marker::PhantomData;
 use num::{Float, FromPrimitive};
 

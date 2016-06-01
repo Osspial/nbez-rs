@@ -23,7 +23,7 @@ macro_rules! n_pointvector {
     };
 
     (float ops $name:ident {$($field:ident),+}) => {
-        impl<F: Float> Mul<F> for $name<F> {
+        impl<F: Float> ::std::ops::Mul<F> for $name<F> {
             type Output = $name<F>;
 
             fn mul(self, rhs: F) -> $name<F> {
@@ -33,7 +33,7 @@ macro_rules! n_pointvector {
             }
         }
 
-        impl<F: Float> Div<F> for $name<F> {
+        impl<F: Float> ::std::ops::Div<F> for $name<F> {
             type Output = $name<F>;
 
             fn div(self, rhs: F) -> $name<F> {
@@ -43,7 +43,7 @@ macro_rules! n_pointvector {
             }
         }
 
-        impl<F: Float> Neg for $name<F> {
+        impl<F: Float> ::std::ops::Neg for $name<F> {
             type Output = $name<F>;
 
             fn neg(self) -> $name<F> {
