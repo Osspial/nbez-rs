@@ -153,7 +153,7 @@ macro_rules! n_bezier {
             type Vector = F;
 
             fn from_slice(slice: &[F]) -> $name<F> {
-                assert!(slice.len() == $name::<F>::order());
+                assert_eq!(slice.len() - 1, $name::<F>::order());
                 let mut index = -1;
                 $name {$($field: {
                     index += 1;
@@ -195,7 +195,7 @@ macro_rules! n_bezier {
 
             #[inline]
             fn order() -> usize {
-                count!($($field),+)
+                count!($($field),+)-1
             }
         }
 
@@ -246,6 +246,7 @@ macro_rules! bez_composite {
             type Vector = $vector<F>;
 
             fn from_slice(slice: &[$point<F>]) -> $name<F> {
+                assert_eq!(slice.len() - 1, $name::<F>::order());
                 let mut index = -1;
                 $name {$($field: {
                     index += 1;
