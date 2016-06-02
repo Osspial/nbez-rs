@@ -68,6 +68,17 @@ macro_rules! n_pointvector {
             }
         }
 
+        impl<'a, F: Float> ::std::convert::From<&'a [F]> for $name<F> {
+            fn from(slice: &'a [F]) -> $name<F> {
+                assert_eq!(slice.len(), count!($($field),+));
+                let mut index = -1;
+                $name{$($field: {
+                    index += 1;
+                    slice[index as usize]
+                }),+}
+            }
+        }
+
         impl<F: Float> ::std::convert::Into<[F; $dims]> for $name<F> {
             fn into(self) -> [F; $dims] {
                 [$(self.$field),*]
@@ -138,8 +149,17 @@ macro_rules! n_bezier {
 
         impl<F> $crate::traits::BezCurve<F> for $name<F>
                 where F: ::num::Float + ::num::FromPrimitive {
-            type Interp = F;
-            type Slope = F;
+            type Point = F;
+            type Vector = F;
+
+            fn from_slice(slice: &[F]) -> $name<F> {
+                assert!(slice.len() == $name::<F>::order());
+                let mut index = -1;
+                $name {$($field: {
+                    index += 1;
+                    slice[index as usize]
+                }),+}   
+            }
 
             fn interp_unbounded(&self, t: F) -> F {
                 let t1 = F::from_f32(1.0).unwrap() - t;
@@ -222,8 +242,16 @@ macro_rules! bez_composite {
 
         impl<F> $crate::traits::BezCurve<F> for $name<F>
                 where F: ::num::Float + ::num::FromPrimitive {
-            type Interp = $point<F>;
-            type Slope = $vector<F>;
+            type Point = $point<F>;
+            type Vector = $vector<F>;
+
+            fn from_slice(slice: &[$point<F>]) -> $name<F> {
+                let mut index = -1;
+                $name {$($field: {
+                    index += 1;
+                    slice[index as usize]
+                }),+}   
+            }
 
             fn interp_unbounded(&self, t: F) -> $point<F> {
                 use $crate::traits::BezCurve;
