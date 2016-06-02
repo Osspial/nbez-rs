@@ -8,7 +8,7 @@ use std::marker::PhantomData;
 use num::{Float, FromPrimitive};
 
 #[inline]
-pub fn check_t_bounds<F: Float + FromPrimitive>(t: F) {
+fn check_t_bounds<F: Float + FromPrimitive>(t: F) {
     let zero = F::from_f32(0.0).unwrap();
     let one  = F::from_f32(1.0).unwrap();
     assert!(zero <= t && t <= one);
