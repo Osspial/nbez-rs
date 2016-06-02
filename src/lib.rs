@@ -2,6 +2,7 @@ extern crate num;
 
 #[macro_use]
 mod macros;
+pub mod traits;
 
 use std::marker::PhantomData;
 use num::{Float, FromPrimitive};

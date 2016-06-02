@@ -134,13 +134,14 @@ macro_rules! n_bezier {
                     $($field: $field),+
                 }
             }
+        }
 
-            pub fn interp(&self, t: F) -> F {
-                $crate::check_t_bounds(t);
-                self.interp_unbounded(t)
-            }
+        impl<F> $crate::traits::BezCurve<F> for $name<F>
+                where F: ::num::Float + ::num::FromPrimitive {
+            type Interp = F;
+            type Slope = F;
 
-            pub fn interp_unbounded(&self, t: F) -> F {
+            fn interp_unbounded(&self, t: F) -> F {
                 let t1 = F::from_f32(1.0).unwrap() - t;
                 const COUNT: i32 = count!($($field),+) - 1;
                 let mut factor = COUNT + 1;
@@ -156,12 +157,7 @@ macro_rules! n_bezier {
                 $($field +)+ F::from_f32(0.0).unwrap()
             }
 
-            pub fn slope(&self, t: F) -> F {
-                $crate::check_t_bounds(t);
-                self.slope_unbounded(t)
-            }
-
-            pub fn slope_unbounded(&self, t: F) -> F {
+            fn slope_unbounded(&self, t: F) -> F {
                 let t1 = F::from_f32(1.0).unwrap() - t;
                 const COUNT: i32 = count!($($dleft),+) - 1;
                 let mut factor = COUNT + 1;
@@ -175,6 +171,11 @@ macro_rules! n_bezier {
                         F::from_i32($dweight * (COUNT + 1)).unwrap();
                 )+
                 $($dleft +)+ F::from_f32(0.0).unwrap()
+            }
+
+            #[inline]
+            fn order() -> usize {
+                count!($($field),+)
             }
         }
 
@@ -217,25 +218,30 @@ macro_rules! bez_composite {
                     $($field: $point::new($($n_field),+)),+
                 }
             }
+        }
 
-            pub fn interp(&self, t: F) -> $point<F> {
-                $crate::check_t_bounds(t);
-                self.interp_unbounded(t)
-            }
+        impl<F> $crate::traits::BezCurve<F> for $name<F>
+                where F: ::num::Float + ::num::FromPrimitive {
+            type Interp = $point<F>;
+            type Slope = $vector<F>;
 
-            pub fn interp_unbounded(&self, t: F) -> $point<F> {
+            fn interp_unbounded(&self, t: F) -> $point<F> {
+                use $crate::traits::BezCurve;
+
                 $(let $dim = $poly::new($(self.$dfield.$dim),+);)+
                 $point::new($($dim.interp_unbounded(t)),+)
             }
 
-            pub fn slope(&self, t: F) -> $vector<F> {
-                $crate::check_t_bounds(t);
-                self.slope_unbounded(t)
-            }
+            fn slope_unbounded(&self, t: F) -> $vector<F> {
+                use $crate::traits::BezCurve;
 
-            pub fn slope_unbounded(&self, t: F) -> $vector<F> {
                 $(let $dim = $poly::new($(self.$dfield.$dim),+);)+
                 $vector::new($($dim.slope_unbounded(t)),+)
+            }
+
+            #[inline]
+            fn order() -> usize {
+                $poly::<F>::order()
             }
         }
 

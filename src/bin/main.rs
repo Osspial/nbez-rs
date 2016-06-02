@@ -5,7 +5,8 @@ extern crate gfx;
 extern crate gfx_window_glutin;
 extern crate glutin;
 
-use bev::{Bez3o2d};
+use bev::Bez3o2d;
+use bev::traits::*;
 
 use gfx::traits::FactoryExt;
 use gfx::{Factory, Device, Primitive, BufferRole, Bind, Slice, IndexBuffer};
@@ -35,7 +36,6 @@ fn main() {
         .with_dimensions(win_x, win_y)
         .with_multisampling(16)
         .with_title("Hello Bézier".into());
-    let (window, mut device, mut factory, main_color, _) =
     let (window, mut device, mut factory, main_color, mut main_depth) =
         gfx_window_glutin::init::<ColorFormat, DepthFormat>(builder);
     let mut encoder: gfx::Encoder<_, _> = factory.create_command_buffer().into();
