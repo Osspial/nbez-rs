@@ -7,12 +7,6 @@ pub mod traits;
 use std::marker::PhantomData;
 use num::{Float, FromPrimitive};
 
-#[inline]
-fn check_t_bounds<F: Float + FromPrimitive>(t: F) {
-    let zero = F::from_f32(0.0).unwrap();
-    let one  = F::from_f32(1.0).unwrap();
-    assert!(zero <= t && t <= one);
-}
 
 // There are macros in place to make it easier to create new bezier structs, as they can be created
 // with a very consistent pattern. However, those macros are also written in a very consistent pattern
