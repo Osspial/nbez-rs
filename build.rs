@@ -4,6 +4,9 @@ use std::env;
 
 use std::io::Write;
 
+const MIN_DIMS: usize = 2;
+const MIN_ORDER: usize = 2;
+
 const MAX_DIMS: usize = 4;
 const MAX_ORDER: usize = 6;
 
@@ -14,7 +17,7 @@ fn main() {
     let dim_tags = ['x', 'y', 'z', 'w'];
 
     // Create points and vectors
-    for dim in 2..(MAX_DIMS + 1) {
+    for dim in MIN_DIMS..(MAX_DIMS + 1) {
         writeln!(file, "n_pointvector!{{{0}; Point{0}d, Vector{0}d {{", dim).unwrap();
 
         for (i, dt) in dim_tags[0..dim].iter().enumerate() {
@@ -31,7 +34,7 @@ fn main() {
     }
 
     // Create one-dimensional bezier polynomials
-    for order in 2..(MAX_ORDER + 1) {
+    for order in MIN_ORDER..(MAX_ORDER + 1) {
         writeln!(file, "n_bezier!{{BezPoly{}o {{", order).unwrap();
         for o in 0..(order + 1) {
             write!(file, "    {}: {}", get_param_name(o, order), combination(order, o)).unwrap();
@@ -62,8 +65,8 @@ fn main() {
     }
 
     // Create composite curves
-    for dim in 2..(MAX_DIMS + 1) {
-        for order in 2..(MAX_ORDER + 1) {        
+    for dim in MIN_DIMS..(MAX_DIMS + 1) {
+        for order in MIN_ORDER..(MAX_ORDER + 1) {        
             writeln!(file, "bez_composite!{{Bez{0}o{1}d<BezPoly{0}o> {{", order, dim).unwrap();
 
             for o in 0..(order + 1) {
