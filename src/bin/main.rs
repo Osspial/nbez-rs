@@ -136,9 +136,9 @@ fn main() {
         for i in 0..SAMPLES {
             let t = i as f32/(SAMPLES-1) as f32;
 
-            let interp = curve.interp(t);
+            let interp = curve.interp(t).unwrap();
 
-            let perp = curve.slope(t).normalize().perp() * 0.01;
+            let perp = curve.slope(t).unwrap().normalize().perp() * 0.01;
             cverts[i*2].pos = (-perp + interp).into();
             cverts[i*2 + 1].pos = (perp + interp).into();
         }

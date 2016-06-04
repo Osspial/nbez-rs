@@ -121,6 +121,15 @@ macro_rules! n_pointvector {
 }
 
 
+macro_rules! check_t_bounds {
+    ($t: expr) => {{
+        let zero = F::from_f32(0.0).unwrap();
+        let one  = F::from_f32(1.0).unwrap();
+        if !(zero <= $t && $t <= one) {
+            return None;
+        }
+    }}
+}
 
 // Polynomial Macros
 macro_rules! count {
@@ -152,13 +161,16 @@ macro_rules! n_bezier {
             type Point = F;
             type Vector = F;
 
-            fn from_slice(slice: &[F]) -> $name<F> {
-                assert_eq!(slice.len() - 1, $name::<F>::order());
-                let mut index = -1;
-                $name {$($field: {
-                    index += 1;
-                    slice[index as usize]
-                }),+}   
+            fn from_slice(slice: &[F]) -> Option<$name<F>> {
+                if slice.len() - 1 != $name::<F>::order_static().unwrap() {
+                    None
+                } else {
+                    let mut index = -1;
+                    Some($name {$($field: {
+                        index += 1;
+                        slice[index as usize]
+                    }),+})
+                }
             }
 
             fn interp_unbounded(&self, t: F) -> F {
@@ -194,8 +206,8 @@ macro_rules! n_bezier {
             }
 
             #[inline]
-            fn order() -> usize {
-                count!($($field),+)-1
+            fn order_static() -> Option<usize> {
+                Some(count!($($field),+)-1)            
             }
         }
 
@@ -245,13 +257,16 @@ macro_rules! bez_composite {
             type Point = $point<F>;
             type Vector = $vector<F>;
 
-            fn from_slice(slice: &[$point<F>]) -> $name<F> {
-                assert_eq!(slice.len() - 1, $name::<F>::order());
-                let mut index = -1;
-                $name {$($field: {
-                    index += 1;
-                    slice[index as usize]
-                }),+}   
+            fn from_slice(slice: &[$point<F>]) -> Option<$name<F>> {
+                if slice.len() - 1 == $name::<F>::order_static().unwrap() {
+                    None
+                } else {
+                    let mut index = -1;
+                    Some( $name {$($field: {
+                        index += 1;
+                        slice[index as usize]
+                    }),+})  
+                }
             }
 
             fn interp_unbounded(&self, t: F) -> $point<F> {
@@ -269,8 +284,8 @@ macro_rules! bez_composite {
             }
 
             #[inline]
-            fn order() -> usize {
-                $poly::<F>::order()
+            fn order_static() -> Option<usize> {
+                $poly::<F>::order_static()
             }
         }
 
