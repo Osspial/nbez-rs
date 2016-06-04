@@ -211,9 +211,8 @@ macro_rules! n_bezier {
             }
         }
 
-        impl<F> ::std::ops::Deref for $name<F> where F: ::num::Float + ::num::FromPrimitive {
-            type Target = [F];
-            fn deref(&self) -> &[F] {
+        impl<F> ::std::convert::AsRef<[F]> for $name<F> where F: ::num::Float + ::num::FromPrimitive {
+            fn as_ref(&self) -> &[F] {
                 use std::slice;
                 unsafe {
                     slice::from_raw_parts(self as *const $name<F> as *const F, count!($($field),+))
@@ -221,8 +220,8 @@ macro_rules! n_bezier {
             }
         }
 
-        impl<F> ::std::ops::DerefMut for $name<F> where F: ::num::Float + ::num::FromPrimitive {
-            fn deref_mut(&mut self) -> &mut [F] {
+        impl<F> ::std::convert::AsMut<[F]> for $name<F> where F: ::num::Float + ::num::FromPrimitive {
+            fn as_mut(&mut self) -> &mut [F] {
                 use std::slice;
                 unsafe {
                     slice::from_raw_parts_mut(self as *mut $name<F> as *mut F, count!($($field),+))
@@ -289,9 +288,8 @@ macro_rules! bez_composite {
             }
         }
 
-        impl<F> ::std::ops::Deref for $name<F> where F: ::num::Float + ::num::FromPrimitive {
-            type Target = [$point<F>];
-            fn deref(&self) -> &[$point<F>] {
+        impl<F> ::std::convert::AsRef<[$point<F>]> for $name<F> where F: ::num::Float + ::num::FromPrimitive {
+            fn as_ref(&self) -> &[$point<F>] {
                 use std::slice;
                 unsafe {
                     slice::from_raw_parts(self as *const $name<F> as *const $point<F>, count!($($field),+))
@@ -299,8 +297,8 @@ macro_rules! bez_composite {
             }
         }
 
-        impl<F> ::std::ops::DerefMut for $name<F> where F: ::num::Float + ::num::FromPrimitive {
-            fn deref_mut(&mut self) -> &mut [$point<F>] {
+        impl<F> ::std::convert::AsMut<[$point<F>]> for $name<F> where F: ::num::Float + ::num::FromPrimitive {
+            fn as_mut(&mut self) -> &mut [$point<F>] {
                 use std::slice;
                 unsafe {
                     slice::from_raw_parts_mut(self as *mut $name<F> as *mut $point<F>, count!($($field),+))

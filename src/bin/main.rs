@@ -113,7 +113,7 @@ fn main() {
                     moy = -pix_to_float(y, win_y) / data.window_matrix[1][1];
                 }
                 Event::MouseInput(ElementState::Pressed, MouseButton::Left) => {
-                    for (i, c) in curve.iter().enumerate() {
+                    for (i, c) in curve.as_ref().iter().enumerate() {
                         let dist = (c.x-mox).hypot(c.y-moy);
                         if dist <= radius {
                             selected = i as isize;
@@ -127,7 +127,7 @@ fn main() {
 
         // If any control point is selected, move that control point with the mouse.
         if 0 <= selected {
-            let c = &mut curve[selected as usize];
+            let c = &mut curve.as_mut()[selected as usize];
             c.x = mox;
             c.y = moy;
         }
