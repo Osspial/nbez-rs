@@ -2,7 +2,9 @@ extern crate num;
 
 #[macro_use]
 mod macros;
+mod nbez;
 pub mod traits;
+pub use nbez::*;
 
 use std::marker::PhantomData;
 use num::{Float, FromPrimitive};

@@ -5,7 +5,7 @@ extern crate gfx;
 extern crate gfx_window_glutin;
 extern crate glutin;
 
-use bev::Bez3o2d;
+use bev::{NBez, Point2d, Vector2d};
 use bev::traits::*;
 
 use gfx::traits::FactoryExt;
@@ -47,12 +47,12 @@ fn main() {
         pipe::new()
     ).unwrap();
 
-    let mut curve = Bez3o2d::new(
-        -0.5, -0.5,
-        -0.5,  0.5,
-         0.5, -0.5,
-         0.5,  0.5
-    );
+    let mut curve: NBez<_, _, Point2d<_>, Vector2d<_>> = NBez::from_container([
+        Point2d::new(-0.5, -0.5),
+        Point2d::new(-0.5,  0.5),
+        Point2d::new( 0.5, -0.5),
+        Point2d::new( 0.5,  0.5)
+    ]);
 
     let radius = 0.02;
     let circle = gen_circle(16, radius, [1.0, 0.0, 0.0]);
@@ -152,14 +152,10 @@ fn main() {
         encoder.draw(&cvert_slice, &pso, &data);
 
         data.vbuf = cir_buffer.clone();
-        data.offset = curve.start.into();
-        encoder.draw(&cir_slice, &pso, &data);
-        data.offset = curve.ctrl0.into();
-        encoder.draw(&cir_slice, &pso, &data);
-        data.offset = curve.ctrl1.into();
-        encoder.draw(&cir_slice, &pso, &data);
-        data.offset = curve.end.into();
-        encoder.draw(&cir_slice, &pso, &data);
+        for p in curve.as_ref().iter() {
+            data.offset = (*p).into();
+            encoder.draw(&cir_slice, &pso, &data);
+        }
 
 
         encoder.flush(&mut device);

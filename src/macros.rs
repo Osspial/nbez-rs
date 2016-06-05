@@ -99,6 +99,24 @@ macro_rules! n_pointvector {
             }
         }
 
+        impl<F: Float> ::std::convert::AsRef<[F]> for $name<F> {
+            fn as_ref(&self) -> &[F] {
+                use std::slice;
+                unsafe {
+                    slice::from_raw_parts(self as *const $name<F> as *const F, $dims)
+                }
+            }
+        }
+
+        impl<F: Float> ::std::convert::AsMut<[F]> for $name<F> {
+            fn as_mut(&mut self) -> &mut [F] {
+                use std::slice;
+                unsafe {
+                    slice::from_raw_parts_mut(self as *mut $name<F> as *mut F, $dims)
+                }
+            }
+        }
+
         n_pointvector!(ops $name; $sibling {$($field),+});
         n_pointvector!(ops $name; $name {$($field),+});
         n_pointvector!(float ops $name {$($field),+});
