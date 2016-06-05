@@ -1,7 +1,7 @@
 // Vector/Point macros
 macro_rules! n_pointvector {
     (ops $lhs:ident; $rhs:ident {$($field:ident),*}) => {
-        impl<F: Float> ::std::ops::Add<$rhs<F>> for $lhs<F> {
+        impl<F: $crate::traitdefs::Float> ::std::ops::Add<$rhs<F>> for $lhs<F> {
             type Output = $lhs<F>;
 
             fn add(self, rhs: $rhs<F>) -> $lhs<F> {
@@ -11,7 +11,7 @@ macro_rules! n_pointvector {
             }
         }
 
-        impl<F: Float> ::std::ops::Sub<$rhs<F>> for $lhs<F> {
+        impl<F: $crate::traitdefs::Float> ::std::ops::Sub<$rhs<F>> for $lhs<F> {
             type Output = $lhs<F>;
 
             fn sub(self, rhs: $rhs<F>) -> $lhs<F> {
@@ -23,7 +23,7 @@ macro_rules! n_pointvector {
     };
 
     (float ops $name:ident {$($field:ident),+}) => {
-        impl<F: Float> ::std::ops::Mul<F> for $name<F> {
+        impl<F: $crate::traitdefs::Float> ::std::ops::Mul<F> for $name<F> {
             type Output = $name<F>;
 
             fn mul(self, rhs: F) -> $name<F> {
@@ -33,7 +33,7 @@ macro_rules! n_pointvector {
             }
         }
 
-        impl<F: Float> ::std::ops::Div<F> for $name<F> {
+        impl<F: $crate::traitdefs::Float> ::std::ops::Div<F> for $name<F> {
             type Output = $name<F>;
 
             fn div(self, rhs: F) -> $name<F> {
@@ -43,7 +43,7 @@ macro_rules! n_pointvector {
             }
         }
 
-        impl<F: Float> ::std::ops::Neg for $name<F> {
+        impl<F: $crate::traitdefs::Float> ::std::ops::Neg for $name<F> {
             type Output = $name<F>;
 
             fn neg(self) -> $name<F> {
@@ -56,11 +56,11 @@ macro_rules! n_pointvector {
 
     (struct $dims:expr; $name:ident {$($field:ident: $f_ty:ident),+} $sibling:ident) => {
         #[derive(Debug, Clone, Copy)]
-        pub struct $name<F: Float> {
+        pub struct $name<F: $crate::traitdefs::Float> {
             $(pub $field: F),+
         }
 
-        impl<F: Float> $name<F> {
+        impl<F: $crate::traitdefs::Float> $name<F> {
             pub fn new($($field: F),+) -> $name<F> {
                 $name {
                     $($field: $field),+
@@ -68,7 +68,7 @@ macro_rules! n_pointvector {
             }
         }
 
-        impl<'a, F: Float> ::std::convert::From<&'a [F]> for $name<F> {
+        impl<'a, F: $crate::traitdefs::Float> ::std::convert::From<&'a [F]> for $name<F> {
             fn from(slice: &'a [F]) -> $name<F> {
                 assert_eq!(slice.len(), count!($($field),+));
                 let mut index = -1;
@@ -79,19 +79,19 @@ macro_rules! n_pointvector {
             }
         }
 
-        impl<F: Float> ::std::convert::Into<[F; $dims]> for $name<F> {
+        impl<F: $crate::traitdefs::Float> ::std::convert::Into<[F; $dims]> for $name<F> {
             fn into(self) -> [F; $dims] {
                 [$(self.$field),*]
             }
         }
 
-        impl<F: Float> ::std::convert::Into<($($f_ty),*)> for $name<F> {
+        impl<F: $crate::traitdefs::Float> ::std::convert::Into<($($f_ty),*)> for $name<F> {
             fn into(self) -> ($($f_ty),*) {
                 ($(self.$field),*)
             }
         }
 
-        impl<F: Float> ::std::convert::From<$sibling<F>> for $name<F> {
+        impl<F: $crate::traitdefs::Float> ::std::convert::From<$sibling<F>> for $name<F> {
             fn from(sib: $sibling<F>) -> $name<F> {
                 $name {
                     $($field: sib.$field),*
@@ -99,7 +99,7 @@ macro_rules! n_pointvector {
             }
         }
 
-        impl<F: Float> ::std::convert::AsRef<[F]> for $name<F> {
+        impl<F: $crate::traitdefs::Float> ::std::convert::AsRef<[F]> for $name<F> {
             fn as_ref(&self) -> &[F] {
                 use std::slice;
                 unsafe {
@@ -108,7 +108,7 @@ macro_rules! n_pointvector {
             }
         }
 
-        impl<F: Float> ::std::convert::AsMut<[F]> for $name<F> {
+        impl<F: $crate::traitdefs::Float> ::std::convert::AsMut<[F]> for $name<F> {
             fn as_mut(&mut self) -> &mut [F] {
                 use std::slice;
                 unsafe {
@@ -126,7 +126,7 @@ macro_rules! n_pointvector {
         n_pointvector!(struct $dims; $p_name {$($field: F),+} $v_name);
         n_pointvector!(struct $dims; $v_name {$($field: F),+} $p_name);
 
-        impl<F: Float + FromPrimitive> $v_name<F> {
+        impl<F: $crate::traitdefs::Float> $v_name<F> {
             pub fn len(self) -> F {
                 ($(self.$field.powi(2) +)+ F::from_f32(0.0).unwrap()).sqrt()
             }
