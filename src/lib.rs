@@ -3,6 +3,7 @@ extern crate num;
 #[macro_use]
 mod macros;
 mod nbez;
+pub mod traitdefs;
 pub mod traits;
 pub use nbez::*;
 

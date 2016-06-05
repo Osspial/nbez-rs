@@ -1,4 +1,4 @@
-use num::{Float, FromPrimitive};
+use traitdefs::{Float, Point, Vector};
 use std::convert::{AsRef, AsMut};
 use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
@@ -65,7 +65,7 @@ fn factors(order: usize) -> RangeSlice {
 
 #[derive(Clone)]
 pub struct NBezPoly<F, C = Vec<F>> 
-        where F: Float + FromPrimitive,
+        where F: Float,
               C: AsRef<[F]> {
     points: C,
     factors: Cell<RangeSlice>,
@@ -74,7 +74,7 @@ pub struct NBezPoly<F, C = Vec<F>>
 }
 
 impl<F, C> NBezPoly<F, C>
-        where F: Float + FromPrimitive,
+        where F: Float,
               C: AsRef<[F]> {
     #[inline]
     fn new(points: C, factors: RangeSlice, dfactors: RangeSlice) -> NBezPoly<F, C> {
@@ -136,7 +136,7 @@ impl<F, C> NBezPoly<F, C>
 }
 
 impl<F, C> BezCurve<F> for NBezPoly<F, C> 
-        where F: Float + FromPrimitive,
+        where F: Float,
               C: AsRef<[F]> {
     type Point = F;
     type Vector = F;
@@ -174,7 +174,7 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
 }
 
 impl<F, C> AsRef<C> for NBezPoly<F, C>
-        where F: Float + FromPrimitive,
+        where F: Float,
               C: AsRef<[F]> {
     fn as_ref(&self) -> &C {
         &self.points
@@ -182,7 +182,7 @@ impl<F, C> AsRef<C> for NBezPoly<F, C>
 }
 
 impl<F, C> AsMut<C> for NBezPoly<F, C>
-        where F: Float + FromPrimitive,
+        where F: Float,
               C: AsRef<[F]> {
     fn as_mut(&mut self) -> &mut C {
         &mut self.points
@@ -190,10 +190,10 @@ impl<F, C> AsMut<C> for NBezPoly<F, C>
 }
 
 pub struct NBez<F, C, P, V>
-        where F: Float + FromPrimitive,
+        where F: Float,
               C: AsRef<[P]>,
-              P: AsRef<[F]> + AsMut<[F]> + Clone,
-              V: AsRef<[F]> + AsMut<[F]> + From<P> {
+              P: Point<F>,
+              V: Vector<F, P> {
     points: C,
     factors: Cell<RangeSlice>,
     dfactors: Cell<RangeSlice>,
@@ -204,10 +204,10 @@ pub struct NBez<F, C, P, V>
 }
 
 impl<F, C, P, V> NBez<F, C, P, V>
-        where F: Float + FromPrimitive,
+        where F: Float,
               C: AsRef<[P]>,
-              P: AsRef<[F]> + AsMut<[F]> + Clone,
-              V: AsRef<[F]> + AsMut<[F]> + From<P> {
+              P: Point<F>,
+              V: Vector<F, P> {
     pub fn from_container(container: C) -> NBez<F, C, P, V> {
         NBez {
             points: container,
@@ -222,10 +222,10 @@ impl<F, C, P, V> NBez<F, C, P, V>
 }
 
 impl<F, C, P, V> BezCurve<F> for NBez<F, C, P, V>
-        where F: Float + FromPrimitive,
+        where F: Float,
               C: AsRef<[P]>,
-              P: AsRef<[F]> + AsMut<[F]> + Clone,
-              V: AsRef<[F]> + AsMut<[F]> + From<P> {
+              P: Point<F>,
+              V: Vector<F, P> {
     type Point = P;
     type Vector = V;
 
@@ -281,20 +281,20 @@ impl<F, C, P, V> BezCurve<F> for NBez<F, C, P, V>
 }
 
 impl<F, C, P, V> AsRef<C> for NBez<F, C, P, V>
-        where F: Float + FromPrimitive,
+        where F: Float,
               C: AsRef<[P]>,
-              P: AsRef<[F]> + AsMut<[F]> + Clone,
-              V: AsRef<[F]> + AsMut<[F]> + From<P> {
+              P: Point<F>,
+              V: Vector<F, P> {
     fn as_ref(&self) -> &C {
         &self.points
     }
 }
 
 impl<F, C, P, V> AsMut<C> for NBez<F, C, P, V>
-        where F: Float + FromPrimitive,
+        where F: Float,
               C: AsRef<[P]>,
-              P: AsRef<[F]> + AsMut<[F]> + Clone,
-              V: AsRef<[F]> + AsMut<[F]> + From<P> {
+              P: Point<F>,
+              V: Vector<F, P> {
     fn as_mut(&mut self) -> &mut C {
         &mut self.points
     }

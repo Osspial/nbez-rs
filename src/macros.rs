@@ -162,11 +162,11 @@ macro_rules! n_bezier {
         $($dleft:ident - $dright:ident: $dweight:expr),+
     }) => {
         #[derive(Debug, Clone, Copy)]
-        pub struct $name<F> where F: ::num::Float + ::num::FromPrimitive {
+        pub struct $name<F> where F: $crate::traitdefs::Float {
             $(pub $field: F),+
         }
 
-        impl<F> $name<F> where F: ::num::Float + ::num::FromPrimitive {
+        impl<F> $name<F> where F: $crate::traitdefs::Float {
             pub fn new($($field: F),+) -> $name<F> {
                 $name {
                     $($field: $field),+
@@ -175,7 +175,7 @@ macro_rules! n_bezier {
         }
 
         impl<F> $crate::traits::BezCurve<F> for $name<F>
-                where F: ::num::Float + ::num::FromPrimitive {
+                where F: $crate::traitdefs::Float {
             type Point = F;
             type Vector = F;
 
@@ -229,7 +229,7 @@ macro_rules! n_bezier {
             }
         }
 
-        impl<F> ::std::convert::AsRef<[F]> for $name<F> where F: ::num::Float + ::num::FromPrimitive {
+        impl<F> ::std::convert::AsRef<[F]> for $name<F> where F: $crate::traitdefs::Float {
             fn as_ref(&self) -> &[F] {
                 use std::slice;
                 unsafe {
@@ -238,7 +238,7 @@ macro_rules! n_bezier {
             }
         }
 
-        impl<F> ::std::convert::AsMut<[F]> for $name<F> where F: ::num::Float + ::num::FromPrimitive {
+        impl<F> ::std::convert::AsMut<[F]> for $name<F> where F: $crate::traitdefs::Float {
             fn as_mut(&mut self) -> &mut [F] {
                 use std::slice;
                 unsafe {
@@ -257,11 +257,11 @@ macro_rules! bez_composite {
         $($dim:ident = $($dfield:ident),+;)+) => 
     {
         #[derive(Debug, Clone, Copy)]
-        pub struct $name<F: ::num::Float + ::num::FromPrimitive> {
+        pub struct $name<F: $crate::traitdefs::Float> {
             $(pub $field: $point<F>),+
         }
 
-        impl<F: ::num::Float + ::num::FromPrimitive> $name<F> {
+        impl<F: $crate::traitdefs::Float> $name<F> {
             pub fn new($($($n_field: F),+),+) -> $name<F> {
                 $name {
                     $($field: $point::new($($n_field),+)),+
@@ -270,7 +270,7 @@ macro_rules! bez_composite {
         }
 
         impl<F> $crate::traits::BezCurve<F> for $name<F>
-                where F: ::num::Float + ::num::FromPrimitive {
+                where F: $crate::traitdefs::Float {
             type Point = $point<F>;
             type Vector = $vector<F>;
 
@@ -306,7 +306,7 @@ macro_rules! bez_composite {
             }
         }
 
-        impl<F> ::std::convert::AsRef<[$point<F>]> for $name<F> where F: ::num::Float + ::num::FromPrimitive {
+        impl<F> ::std::convert::AsRef<[$point<F>]> for $name<F> where F: $crate::traitdefs::Float {
             fn as_ref(&self) -> &[$point<F>] {
                 use std::slice;
                 unsafe {
@@ -315,7 +315,7 @@ macro_rules! bez_composite {
             }
         }
 
-        impl<F> ::std::convert::AsMut<[$point<F>]> for $name<F> where F: ::num::Float + ::num::FromPrimitive {
+        impl<F> ::std::convert::AsMut<[$point<F>]> for $name<F> where F: $crate::traitdefs::Float {
             fn as_mut(&mut self) -> &mut [$point<F>] {
                 use std::slice;
                 unsafe {
