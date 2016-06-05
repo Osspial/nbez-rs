@@ -77,18 +77,13 @@ impl<F, C> NBezPoly<F, C>
         where F: Float,
               C: AsRef<[F]> {
     #[inline]
-    fn new(points: C, factors: RangeSlice, dfactors: RangeSlice) -> NBezPoly<F, C> {
+    pub fn from_container(points: C) -> NBezPoly<F, C> {
         NBezPoly {
             points: points,
-            factors: Cell::new(factors),
-            dfactors: Cell::new(dfactors),
+            factors: Cell::new(RangeSlice::new(0, 0)),
+            dfactors: Cell::new(RangeSlice::new(0, 0)),
             phantom: PhantomData
         }
-    }
-
-    #[inline]
-    pub fn from_container(points: C) -> NBezPoly<F, C> {
-        NBezPoly::new(points, RangeSlice::new(0, 0), RangeSlice::new(0, 0))
     }
 
     #[inline]
