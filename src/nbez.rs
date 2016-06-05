@@ -5,6 +5,9 @@ use std::marker::PhantomData;
 
 use super::traits::BezCurve;
 
+/// A struct that contains range information for slicing, used for slicing into the global factor
+/// vector. The reason this is used instead of stdlib's `Range` struct is that `Range` does not
+/// implement Copy, which means we have to use `RefCell`s instead of `Cell`s for interior mutability.
 #[derive(Copy, Clone)]
 struct RangeSlice {
     start: usize,
@@ -36,6 +39,7 @@ fn factorial(n: usize) -> usize {
     }
 }
 
+/// Gets the index of the bezier factors inside of FACTORS global.
 fn order_index(order: usize) -> usize {
     (order*order+order)/2
 }
@@ -44,6 +48,8 @@ thread_local!{
     static FACTORS: RefCell<(usize, Vec<usize>)> = RefCell::new((0, Vec::with_capacity(order_index(16+1))))
 }
 
+/// Returns a RangeSlice for FACTORS with the appropriate factors for the given order. Calculates
+/// factors if necessary.
 fn factors(order: usize) -> RangeSlice {
     FACTORS.with(|f| {
         let max_order = f.borrow().0;
@@ -63,6 +69,7 @@ fn factors(order: usize) -> RangeSlice {
 }
 
 
+/// An n-order bezier polynomial
 #[derive(Clone)]
 pub struct NBezPoly<F, C = Vec<F>> 
         where F: Float,
@@ -205,6 +212,7 @@ impl<F, C, P, V> NBez<F, C, P, V>
               C: AsRef<[P]>,
               P: Point<F>,
               V: Vector<F, P> {
+    /// Create a new `NBez` curve from a container
     pub fn from_container(container: C) -> NBez<F, C, P, V> {
         NBez {
             points: container,
@@ -215,6 +223,11 @@ impl<F, C, P, V> NBez<F, C, P, V>
             point_phantom: PhantomData,
             vector_phantom: PhantomData
         }
+    }
+
+    /// Get the wrapped container, destroying the `NBez` curve
+    pub fn unwrap(self) -> C {
+        self.points
     }
 }
 
@@ -232,12 +245,16 @@ impl<F, C, P, V> BezCurve<F> for NBez<F, C, P, V>
 
     fn interp_unbounded(&self, t: F) -> P {
         let points = self.points.as_ref();
+
+        // Initialize a point by cloning one from the point list
         let mut point = points[0].clone();
 
+        // If the factors aren't correct for the current order, recompute factors
         if self.factors.get().len() != self.order() {
             self.factors.set(factors(self.order()))
         }
 
+        // Iterate over all elements of the point and set them to the interpolated value
         for (i, f) in point.as_mut().iter_mut().enumerate() {
             let iter = points.iter().map(|p| p.as_ref()[i]);
             *f = unsafe{ NBezPoly::<_, &[_]>::interp_unchecked(t, self.factors.get(), iter) };
@@ -248,13 +265,16 @@ impl<F, C, P, V> BezCurve<F> for NBez<F, C, P, V>
 
     fn slope_unbounded(&self, t: F) -> V {
         let points = self.points.as_ref();
-        let mut vector: V = points[0].clone().into();
 
+        // Initialize a vector by cloning it from the point list and converting it into a vector
+        let mut vector: V = points[0].clone().into();
         let order = self.order() - 1;
+
         if self.dfactors.get().len() != order {
             self.dfactors.set(factors(order))
         }
 
+        // Iterate over all elements of the vector and set them to the interpolated value
         for (i, f) in vector.as_mut().iter_mut().enumerate() {
             let iter = points.iter().map(|p| p.as_ref()[i]);
             *f = unsafe{ NBezPoly::<_, &[_]>::slope_unchecked(t, self.dfactors.get(), iter) };
