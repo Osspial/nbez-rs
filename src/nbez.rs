@@ -96,8 +96,9 @@ impl<F, C> NBezPoly<F, C>
         self.points
     }
 
-    unsafe fn interp_unchecked<I: Iterator<Item=F>>(&self, t: F, order: usize, iter: I) -> F {
+    unsafe fn interp_unchecked<I: Iterator<Item=F>>(t: F, factors: RangeSlice, iter: I) -> F {
         let t1 = F::from_f32(1.0).unwrap() - t;
+        let order = factors.len() - 1;
         let mut acc = F::from_f32(0.0).unwrap();
         let mut factor = 0;
 
@@ -107,15 +108,16 @@ impl<F, C> NBezPoly<F, C>
                 acc = acc + t.powi(factor as i32) *
                             t1.powi((order-factor) as i32) *
                             point *
-                            F::from_usize(fs.1[self.factors.get().start + factor]).unwrap();
+                            F::from_usize(fs.1[factors.start + factor]).unwrap();
                 factor += 1;
             }            
         });
         acc        
     }
 
-    unsafe fn slope_unchecked<I: Iterator<Item=F>>(&self, t: F, order: usize, mut iter: I) -> F {
+    unsafe fn slope_unchecked<I: Iterator<Item=F>>(t: F, dfactors: RangeSlice, mut iter: I) -> F {
         let t1 = F::from_f32(1.0).unwrap() - t;
+        let order = dfactors.len() - 1;
         let mut acc = F::from_f32(0.0).unwrap();
         let mut factor = 0;
         let mut point_next = iter.next().unwrap();
@@ -126,7 +128,7 @@ impl<F, C> NBezPoly<F, C>
                 acc = acc + t.powi(factor as i32) *
                             t1.powi((order-factor) as i32) *
                             (point_next - point) *
-                            F::from_usize(fs.1[self.dfactors.get().start + factor] * (order + 1) as usize).unwrap();
+                            F::from_usize(fs.1[dfactors.start + factor] * (order + 1) as usize).unwrap();
                 point_next = point;
                 factor += 1;
             }            
@@ -151,7 +153,7 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
             self.factors.set(factors(self.order()))
         }
 
-        unsafe{ self.interp_unchecked(t, self.order(), points.iter().map(|f| *f)) }
+        unsafe{ NBezPoly::<_, &[_]>::interp_unchecked(t, self.factors.get(), points.iter().map(|f| *f)) }
     }
 
     fn slope_unbounded(&self, t: F) -> F {
@@ -161,7 +163,7 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
             self.dfactors.set(factors(order))
         }
 
-        unsafe{ self.slope_unchecked(t, order, points.iter().map(|f| *f)) }
+        unsafe{ NBezPoly::<_, &[_]>::slope_unchecked(t, self.dfactors.get(), points.iter().map(|f| *f)) }
     }
 
     fn order(&self) -> usize {
@@ -240,13 +242,10 @@ impl<F, C, P, V> BezCurve<F> for NBez<F, C, P, V>
         if self.factors.get().len() != self.order() {
             self.factors.set(factors(self.order()))
         }
-        // Create an n-order bezier chain. Because we're passing the actual control points by an iterator
-        // (defined in the for loop below), we give it a fake point slice.
-        let chain = NBezPoly::new([], self.factors.get(), self.dfactors.get());
 
         for (i, f) in point.as_mut().iter_mut().enumerate() {
             let iter = points.iter().map(|p| p.as_ref()[i]);
-            *f = unsafe{ chain.interp_unchecked(t, self.order(), iter) };
+            *f = unsafe{ NBezPoly::<_, &[_]>::interp_unchecked(t, self.factors.get(), iter) };
         }
 
         point
@@ -260,12 +259,10 @@ impl<F, C, P, V> BezCurve<F> for NBez<F, C, P, V>
         if self.dfactors.get().len() != order {
             self.dfactors.set(factors(order))
         }
-        // Ditto. See interp_unbounded.
-        let chain = NBezPoly::new([], self.factors.get(), self.dfactors.get());
 
         for (i, f) in vector.as_mut().iter_mut().enumerate() {
             let iter = points.iter().map(|p| p.as_ref()[i]);
-            *f = unsafe{ chain.slope_unchecked(t, order, iter) };
+            *f = unsafe{ NBezPoly::<_, &[_]>::slope_unchecked(t, self.dfactors.get(), iter) };
         }
 
         vector
