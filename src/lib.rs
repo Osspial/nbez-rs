@@ -6,7 +6,13 @@ mod nbez;
 pub mod traitdefs;
 pub mod traits;
 pub use nbez::*;
+use traitdefs::Float;
 
+#[inline]
+fn lerp<F: Float>(a: F, b: F, factor: F) -> F {
+    let fact1 = F::from_f32(1.0).unwrap() - factor;
+    a * factor + b * fact1
+}
 
 // There are macros in place to make it easier to create new bezier structs, as they can be created
 // with a very consistent pattern. However, those macros are also written in a very consistent pattern

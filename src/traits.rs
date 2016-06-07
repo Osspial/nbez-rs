@@ -4,6 +4,7 @@ pub trait BezCurve<F: Float + FromPrimitive>
         where Self: Sized {
     type Point;
     type Vector;
+    type Elevated;
 
     /// Attempt to create a curve from a slice. Fails if the slice's length does not match the
     /// curve's order + 1, or if it is being used to create an `NBez`/`NBezPoly`.
@@ -26,6 +27,8 @@ pub trait BezCurve<F: Float + FromPrimitive>
     }
     /// Get the slope for the given `t` with no range bounds
     fn slope_unbounded(&self, t: F) -> Self::Vector;
+
+    fn elevate(&self) -> Self::Elevated;
     
     /// Gets the order of the curve
     fn order(&self) -> usize {

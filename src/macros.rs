@@ -160,6 +160,10 @@ macro_rules! n_bezier {
         $($field:ident: $weight:expr),+
     } derived {
         $($dleft:ident - $dright:ident: $dweight:expr),+
+    } elevated $elevated:ident<$($est:ty),+> {
+        $estart:ident;
+        $($eleft:ident + $eright:ident),+;
+        $eend:ident;
     }) => {
         #[derive(Debug, Clone, Copy)]
         pub struct $name<F> where F: $crate::traitdefs::Float {
@@ -178,6 +182,7 @@ macro_rules! n_bezier {
                 where F: $crate::traitdefs::Float {
             type Point = F;
             type Vector = F;
+            type Elevated = $elevated<$($est),+>;
 
             fn from_slice(slice: &[F]) -> Option<$name<F>> {
                 if slice.len() - 1 != $name::<F>::order_static().unwrap() {
@@ -223,9 +228,29 @@ macro_rules! n_bezier {
                 $($dleft +)+ F::from_f32(0.0).unwrap()
             }
 
+            fn elevate(&self) -> $elevated<$($est),+> {
+                let mut factor = 0.0;
+                let order = F::from_usize(self.order() + 1).unwrap();
+                $elevated::from([self.$estart, 
+                    $({
+                        factor += 1.0;
+                        let factor = F::from_f32(factor).unwrap();
+                        (self.$eleft * factor +
+                        self.$eright * (order - factor)) / order
+                    },)+
+                    self.$eend])
+            }
+
             #[inline]
             fn order_static() -> Option<usize> {
                 Some(count!($($field),+)-1)            
+            }
+        }
+
+        impl<F> ::std::convert::From<[F; count!($($field),+)]> for $name<F> where F: $crate::traitdefs::Float {
+            fn from(array: [F; count!($($field),+)]) -> $name<F> {
+                use $crate::traits::BezCurve;
+                $name::from_slice(&array[..]).unwrap()
             }
         }
 
@@ -253,8 +278,11 @@ macro_rules! n_bezier {
 macro_rules! bez_composite {
     ($name:ident<$poly:ident> {
         $($field:ident: $($n_field:ident),+;)+
-    } -> <$point:ident; $vector:ident>;
-        $($dim:ident = $($dfield:ident),+;)+) => 
+    } -> <$point:ident; $vector:ident> {
+        $($dim:ident = $($dfield:ident),+;)+
+    } elevated $elevated:ident<$($est:ty),+> {
+        $($eindex:expr => $($edim:ident),+;)+
+    }) => 
     {
         #[derive(Debug, Clone, Copy)]
         pub struct $name<F: $crate::traitdefs::Float> {
@@ -267,19 +295,26 @@ macro_rules! bez_composite {
                     $($field: $point::new($($n_field),+)),+
                 }
             }
+
+            $(
+                pub fn $dim(&self) -> $poly<F> {
+                    $poly::new($(self.$dfield.$dim),+)
+                }
+            )+
         }
 
         impl<F> $crate::traits::BezCurve<F> for $name<F>
                 where F: $crate::traitdefs::Float {
             type Point = $point<F>;
             type Vector = $vector<F>;
+            type Elevated = $elevated<$($est),+>;
 
             fn from_slice(slice: &[$point<F>]) -> Option<$name<F>> {
-                if slice.len() - 1 == $name::<F>::order_static().unwrap() {
+                if slice.len() - 1 != $name::<F>::order_static().unwrap() {
                     None
                 } else {
                     let mut index = -1;
-                    Some( $name {$($field: {
+                    Some($name {$($field: {
                         index += 1;
                         slice[index as usize]
                     }),+})  
@@ -289,20 +324,32 @@ macro_rules! bez_composite {
             fn interp_unbounded(&self, t: F) -> $point<F> {
                 use $crate::traits::BezCurve;
 
-                $(let $dim = $poly::new($(self.$dfield.$dim),+);)+
-                $point::new($($dim.interp_unbounded(t)),+)
+                $point::new($(self.$dim().interp_unbounded(t)),+)
             }
 
             fn slope_unbounded(&self, t: F) -> $vector<F> {
                 use $crate::traits::BezCurve;
 
-                $(let $dim = $poly::new($(self.$dfield.$dim),+);)+
-                $vector::new($($dim.slope_unbounded(t)),+)
+                $vector::new($(self.$dim().slope_unbounded(t)),+)
+            }
+
+            fn elevate(&self) -> $elevated<$($est),+> {
+                use $crate::traits::BezCurve;
+                
+                $(let $dim = self.$dim().elevate();)+
+                $elevated::from([$($point::new($($edim.as_ref()[$eindex]),+)),+])
             }
 
             #[inline]
             fn order_static() -> Option<usize> {
                 $poly::<F>::order_static()
+            }
+        }
+
+        impl<F> ::std::convert::From<[$point<F>; count!($($field),+)]> for $name<F> where F: $crate::traitdefs::Float {
+            fn from(array: [$point<F>; count!($($field),+)]) -> $name<F> {
+                use $crate::traits::BezCurve;
+                $name::from_slice(&array[..]).unwrap()
             }
         }
 

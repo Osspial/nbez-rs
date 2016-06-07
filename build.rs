@@ -61,7 +61,22 @@ fn main() {
                 writeln!(file, "")
             }.unwrap();
         }
-        writeln!(file, "}}}}").unwrap();
+        if order == MAX_ORDER {
+            writeln!(file, "}} elevated NBezPoly<F, [F; {}]> {{", order + 2).unwrap();
+        } else {
+            writeln!(file, "}} elevated BezPoly{}o<F> {{", order + 1).unwrap();
+        }
+
+        writeln!(file, "    start;").unwrap();
+        for o in 0..order {
+            write!(file, "    {} + {}", get_param_name(o, order), get_param_name(o+1, order)).unwrap();
+            if o == order - 1 {
+                writeln!(file, ";")
+            } else {
+                writeln!(file, ",")
+            }.unwrap();
+        }
+        writeln!(file, "    end;\n}}}}").unwrap();
     }
 
     // Create composite curves
@@ -83,7 +98,7 @@ fn main() {
                 writeln!(file, ";").unwrap();
             }
 
-            writeln!(file, "}} -> <Point{0}d; Vector{0}d>;", dim).unwrap();
+            writeln!(file, "}} -> <Point{0}d; Vector{0}d> {{", dim).unwrap();
 
             for dt in &dim_tags[0..dim] {
                 write!(file, "    {} =", dt).unwrap();
@@ -96,7 +111,23 @@ fn main() {
                 }
                 writeln!(file, ";").unwrap();
             }
-            writeln!(file, "}}").unwrap();
+
+            if order == MAX_ORDER {
+                writeln!(file, "}} elevated NBez<Point{0}d<F>, Vector{0}d<F>, F, [Point{0}d<F>; {1}]> {{", dim, order + 2).unwrap();
+            } else {
+                writeln!(file, "}} elevated Bez{}o{}d<F> {{", order + 1, dim).unwrap();
+            }
+            for o in 0..(order + 2) {
+                write!(file, "    {} =>", o).unwrap();
+                for dt in &dim_tags[0..dim] {
+                    write!(file, " {}", dt).unwrap();
+                    if *dt != dim_tags[dim-1] {
+                        write!(file, ",").unwrap();
+                    }
+                }
+                writeln!(file, ";").unwrap();
+            }
+            writeln!(file, "}}}}").unwrap();
         }
     }
 }

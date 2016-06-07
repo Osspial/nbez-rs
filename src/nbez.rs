@@ -1,9 +1,10 @@
 use traitdefs::{Float, Point, Vector};
-use std::convert::{AsRef, AsMut};
+use std::convert::{AsRef, AsMut, From};
 use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 
 use super::traits::BezCurve;
+use super::lerp;
 
 /// A struct that contains range information for slicing, used for slicing into the global factor
 /// vector. The reason this is used instead of stdlib's `Range` struct is that `Range` does not
@@ -80,6 +81,14 @@ pub struct NBezPoly<F, C = Vec<F>>
     phantom: PhantomData<F>
 }
 
+impl<F, C> From<C> for NBezPoly<F, C>
+        where F: Float,
+              C: AsRef<[F]> {
+    fn from(container: C) -> NBezPoly<F, C> {
+        NBezPoly::from_container(container)
+    }
+}
+
 impl<F, C> NBezPoly<F, C>
         where F: Float,
               C: AsRef<[F]> {
@@ -135,7 +144,7 @@ impl<F, C> NBezPoly<F, C>
                 factor += 1;
             }            
         });
-        acc        
+        acc
     }
 }
 
@@ -144,6 +153,7 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
               C: AsRef<[F]> {
     type Point = F;
     type Vector = F;
+    type Elevated = NBezPoly<F>;
 
     fn from_slice(_: &[F]) -> Option<NBezPoly<F, C>> {
         None
@@ -166,6 +176,26 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
         }
 
         unsafe{ NBezPoly::<_, &[_]>::slope_unchecked(t, self.dfactors.get(), points.iter().map(|f| *f)) }
+    }
+
+    fn elevate(&self) -> NBezPoly<F> {
+        let points = self.points.as_ref();
+        let order = self.order() + 1;
+        let order_f = F::from_usize(order).unwrap();
+        
+        // Elevated points
+        let mut el_points = Vec::with_capacity(order + 1);
+        el_points.push(points[0]);
+
+        let mut prev_p = points[0];
+        for (i, p) in points.iter().map(|p| *p).enumerate().skip(1) {
+            el_points.push(lerp(prev_p, p, F::from_usize(i).unwrap()/order_f));
+
+            prev_p = p;
+        }
+
+        el_points.push(points[self.order()]);
+        NBezPoly::from_container(el_points)
     }
 
     fn order(&self) -> usize {
@@ -193,7 +223,8 @@ impl<F, C> AsMut<C> for NBezPoly<F, C>
     }
 }
 
-pub struct NBez<F, C, P, V>
+#[derive(Clone)]
+pub struct NBez<P, V, F, C>
         where F: Float,
               C: AsRef<[P]>,
               P: Point<F>,
@@ -207,13 +238,23 @@ pub struct NBez<F, C, P, V>
     vector_phantom: PhantomData<V>
 }
 
-impl<F, C, P, V> NBez<F, C, P, V>
+impl<P, V, F, C> From<C> for NBez<P, V, F, C>
+        where F: Float,
+              C: AsRef<[P]>,
+              P: Point<F>,
+              V: Vector<F, P> {
+    fn from(container: C) -> NBez<P, V, F, C> {
+        NBez::from_container(container)
+    }
+}
+
+impl<P, V, F, C> NBez<P, V, F, C>
         where F: Float,
               C: AsRef<[P]>,
               P: Point<F>,
               V: Vector<F, P> {
     /// Create a new `NBez` curve from a container
-    pub fn from_container(container: C) -> NBez<F, C, P, V> {
+    pub fn from_container(container: C) -> NBez<P, V, F, C> {
         NBez {
             points: container,
             factors: Cell::new(RangeSlice::new(0, 0)),
@@ -231,15 +272,16 @@ impl<F, C, P, V> NBez<F, C, P, V>
     }
 }
 
-impl<F, C, P, V> BezCurve<F> for NBez<F, C, P, V>
+impl<P, V, F, C> BezCurve<F> for NBez<P, V, F, C>
         where F: Float,
               C: AsRef<[P]>,
-              P: Point<F>,
+              P: Point<F> + ::std::fmt::Debug,
               V: Vector<F, P> {
     type Point = P;
     type Vector = V;
+    type Elevated = NBez<P, V, F, Vec<P>>;
 
-    fn from_slice(_: &[P]) -> Option<NBez<F, C, P, V>> {
+    fn from_slice(_: &[P]) -> Option<NBez<P, V, F, C>> {
         None
     }
 
@@ -283,6 +325,29 @@ impl<F, C, P, V> BezCurve<F> for NBez<F, C, P, V>
         vector
     }
 
+    fn elevate(&self) -> NBez<P, V, F, Vec<P>> {
+        let points = self.points.as_ref();
+        let order = F::from_usize(self.order() + 1).unwrap();
+
+        let mut el_points = Vec::with_capacity(points.len() + 1);
+        el_points.push(points[0].clone());
+
+        let mut prev_p = points[0].clone();
+        for (i, p) in points.iter().enumerate().skip(1) {
+            // Push an arbitrary point onto the vector for modification
+            el_points.push(p.clone());
+
+            // Iterate over each dimension of the current (c) and previous (r) point and interpolate
+            // between them
+            for (d, (c, r)) in p.as_ref().iter().zip(prev_p.as_ref().iter()).map(|(c, r)| (*c, *r)).enumerate() {
+                el_points[i].as_mut()[d] = lerp(r, c, F::from_usize(i).unwrap()/order);
+            }
+            prev_p = p.clone();
+        }
+        el_points.push(points[points.len()-1].clone());
+        NBez::from_container(el_points)
+    }
+
     fn order(&self) -> usize {
         self.points.as_ref().len() - 1
     }
@@ -292,7 +357,7 @@ impl<F, C, P, V> BezCurve<F> for NBez<F, C, P, V>
     }
 }
 
-impl<F, C, P, V> AsRef<C> for NBez<F, C, P, V>
+impl<P, V, F, C> AsRef<C> for NBez<P, V, F, C>
         where F: Float,
               C: AsRef<[P]>,
               P: Point<F>,
@@ -302,7 +367,7 @@ impl<F, C, P, V> AsRef<C> for NBez<F, C, P, V>
     }
 }
 
-impl<F, C, P, V> AsMut<C> for NBez<F, C, P, V>
+impl<P, V, F, C> AsMut<C> for NBez<P, V, F, C>
         where F: Float,
               C: AsRef<[P]>,
               P: Point<F>,

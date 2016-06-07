@@ -34,8 +34,7 @@ fn main() {
 
     let builder = glutin::WindowBuilder::new()
         .with_dimensions(win_x, win_y)
-        .with_multisampling(16)
-        .with_title("Hello Bézier".into());
+        .with_title("Hello Bézier");
     let (window, mut device, mut factory, main_color, mut main_depth) =
         gfx_window_glutin::init::<ColorFormat, DepthFormat>(builder);
     let mut encoder: gfx::Encoder<_, _> = factory.create_command_buffer().into();
@@ -47,12 +46,11 @@ fn main() {
         pipe::new()
     ).unwrap();
 
-    let mut curve: NBez<_, _, Point2d<_>, Vector2d<_>> = NBez::from_container([
+    let mut curve: NBez<Point2d<_>, Vector2d<_>, _, _> = NBez::from_container([
         Point2d::new(-0.5, -0.5),
         Point2d::new(-0.5,  0.5),
-        Point2d::new( 0.5, -0.5),
         Point2d::new( 0.5,  0.5)
-    ]);
+    ]).elevate();
 
     let radius = 0.02;
     let circle = gen_circle(16, radius, [1.0, 0.0, 0.0]);

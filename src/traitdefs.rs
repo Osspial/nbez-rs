@@ -1,9 +1,10 @@
 //! Various trait aliases to simplify generics in other modules. Every trait in this module is
 //! implemented for all possible valid types.
 use num;
+use std::fmt::Debug;
 
-pub trait Float: num::Float + num::FromPrimitive {}
-impl<F> Float for F where F: num::Float + num::FromPrimitive {}
+pub trait Float: num::Float + num::FromPrimitive + Debug {}
+impl<F> Float for F where F: num::Float + num::FromPrimitive + Debug {}
 
 pub trait Point<F: Float>: AsRef<[F]> + AsMut<[F]> + Clone {}
 impl<F, P> Point<F> for P 
