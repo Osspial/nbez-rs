@@ -12,7 +12,7 @@ use gfx::traits::FactoryExt;
 use gfx::{Factory, Device, Primitive, BufferRole, Bind, Slice, IndexBuffer};
 use gfx::state::Rasterizer;
 
-use glutin::{Event, ElementState, MouseButton};
+use glutin::{Event, ElementState, MouseButton, VirtualKeyCode as VKeyCode};
 
 pub type ColorFormat = gfx::format::Rgba8;
 pub type DepthFormat = gfx::format::DepthStencil;
@@ -34,7 +34,8 @@ fn main() {
 
     let builder = glutin::WindowBuilder::new()
         .with_dimensions(win_x, win_y)
-        .with_title("Hello Bézier");
+        .with_multisampling(16)
+        .with_title("Hello Bézier".into());
     let (window, mut device, mut factory, main_color, mut main_depth) =
         gfx_window_glutin::init::<ColorFormat, DepthFormat>(builder);
     let mut encoder: gfx::Encoder<_, _> = factory.create_command_buffer().into();
@@ -106,6 +107,8 @@ fn main() {
                         [0.0, 720.0/win_y as f32]
                     ];
                 }
+                Event::KeyboardInput(ElementState::Pressed, _, Some(VKeyCode::Space)) =>
+                    curve = curve.elevate(),
                 Event::MouseMoved(x, y) => {
                     mox =  pix_to_float(x, win_x) / data.window_matrix[0][0]; 
                     moy = -pix_to_float(y, win_y) / data.window_matrix[1][1];
