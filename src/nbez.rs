@@ -46,7 +46,7 @@ fn order_index(order: usize) -> usize {
 }
 
 thread_local!{
-    static FACTORS: RefCell<(usize, Vec<usize>)> = RefCell::new((0, Vec::with_capacity(order_index(16+1))))
+    static FACTORS: RefCell<(isize, Vec<usize>)> = RefCell::new((-1, Vec::with_capacity(order_index(16+1))))
 }
 
 /// Returns a RangeSlice for FACTORS with the appropriate factors for the given order. Calculates
@@ -54,10 +54,14 @@ thread_local!{
 fn factors(order: usize) -> RangeSlice {
     FACTORS.with(|f| {
         let max_order = f.borrow().0;
-        if order > max_order {
+        if order as isize > max_order {
             let mut f = f.borrow_mut();
-            f.0 = order;
-            for n in max_order..order+1 {
+            f.0 = order as isize;
+
+            // Because max_order defines the maximum current order, we need to increment it in order to avoid
+            // re-pushing the current max order. Also, we increment the upper bound, `order`, so that the
+            // calculations include `order`.
+            for n in (max_order+1) as usize..order+1 {
                 for k in 0..n+1 {
                     f.1.push(combination(n, k));
                 }
