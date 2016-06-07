@@ -29,15 +29,17 @@ impl RangeSlice {
     }
 }
 
-fn combination(n: usize, k: usize) -> usize {
+fn combination(n: u64, k: u64) -> u64 {
     factorial(n) / (factorial(k) * factorial(n - k))
 }
 
-fn factorial(n: usize) -> usize {
-    match n {
-        0 => 1,
-        _ => n * factorial(n-1)
+fn factorial(mut n: u64) -> u64 {
+    let mut accumulator: u64 = 1;
+    while n > 0 {
+        accumulator = accumulator.checked_mul(n).expect("Attempted to create Bézier curve with factors that overflow u64; decrease curve order");
+        n -= 1;
     }
+    accumulator
 }
 
 /// Gets the index of the bezier factors inside of FACTORS global.
@@ -46,7 +48,7 @@ fn order_index(order: usize) -> usize {
 }
 
 thread_local!{
-    static FACTORS: RefCell<(isize, Vec<usize>)> = RefCell::new((-1, Vec::with_capacity(order_index(16+1))))
+    static FACTORS: RefCell<(isize, Vec<u64>)> = RefCell::new((-1, Vec::with_capacity(order_index(20+1))))
 }
 
 /// Returns a RangeSlice for FACTORS with the appropriate factors for the given order. Calculates
@@ -63,7 +65,7 @@ fn factors(order: usize) -> RangeSlice {
             // calculations include `order`.
             for n in (max_order+1) as usize..order+1 {
                 for k in 0..n+1 {
-                    f.1.push(combination(n, k));
+                    f.1.push(combination(n as u64, k as u64));
                 }
             }
         }
@@ -123,7 +125,7 @@ impl<F, C> NBezPoly<F, C>
                 acc = acc + t.powi(factor as i32) *
                             t1.powi((order-factor) as i32) *
                             point *
-                            F::from_usize(fs.1[factors.start + factor]).unwrap();
+                            F::from_u64(fs.1[factors.start + factor]).unwrap();
                 factor += 1;
             }            
         });
@@ -143,7 +145,7 @@ impl<F, C> NBezPoly<F, C>
                 acc = acc + t.powi(factor as i32) *
                             t1.powi((order-factor) as i32) *
                             (point_next - point) *
-                            F::from_usize(fs.1[dfactors.start + factor] * (order + 1) as usize).unwrap();
+                            F::from_u64(fs.1[dfactors.start + factor] * (order + 1) as u64).unwrap();
                 point_next = point;
                 factor += 1;
             }            
