@@ -171,7 +171,7 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
 
     fn interp_unbounded(&self, t: F) -> F {
         let points = self.points.as_ref();
-        if self.factors.get().len() != self.order() {
+        if self.factors.get().len() != self.order() + 1 {
             self.factors.set(factors(self.order()))
         }
 
@@ -181,7 +181,7 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
     fn slope_unbounded(&self, t: F) -> F {
         let points = self.points.as_ref();
         let order = self.order() - 1;
-        if self.dfactors.get().len() != order {
+        if self.dfactors.get().len() != order + 1 {
             self.dfactors.set(factors(order))
         }
 
@@ -306,7 +306,7 @@ impl<P, V, F, C> BezCurve<F> for NBez<P, V, F, C>
         let mut point = points[0].clone();
 
         // If the factors aren't correct for the current order, recompute factors
-        if self.factors.get().len() != self.order() {
+        if self.factors.get().len() != self.order() + 1 {
             self.factors.set(factors(self.order()))
         }
 
@@ -326,7 +326,7 @@ impl<P, V, F, C> BezCurve<F> for NBez<P, V, F, C>
         let mut vector: V = points[0].clone().into();
         let order = self.order() - 1;
 
-        if self.dfactors.get().len() != order {
+        if self.dfactors.get().len() != order + 1{
             self.dfactors.set(factors(order))
         }
 
