@@ -36,7 +36,7 @@ fn combination(n: u64, k: u64) -> u64 {
 fn factorial(mut n: u64) -> u64 {
     let mut accumulator: u64 = 1;
     while n > 0 {
-        accumulator = accumulator.checked_mul(n).expect("Attempted to create Bézier curve with factors that overflow u64; decrease curve order");
+        accumulator = accumulator.checked_mul(n).expect("Attempted to create Bézier curve with combination that overflow u64; decrease curve order");
         n -= 1;
     }
     accumulator
@@ -100,6 +100,10 @@ impl<F, C> NBezPoly<F, C>
               C: AsRef<[F]> {
     #[inline]
     pub fn from_container(points: C) -> NBezPoly<F, C> {
+        if points.as_ref().len() >= 22 {
+            panic!("Cannot create Bézier polynomials with an order >= 21")
+        }
+
         NBezPoly {
             points: points,
             factors: Cell::new(RangeSlice::new(0, 0)),
@@ -261,6 +265,10 @@ impl<P, V, F, C> NBez<P, V, F, C>
               V: Vector<F, P> {
     /// Create a new `NBez` curve from a container
     pub fn from_container(container: C) -> NBez<P, V, F, C> {
+        if container.as_ref().len() >= 22 {
+            panic!("Cannot create Bézier curves with an order >= 21")
+        }
+
         NBez {
             points: container,
             factors: Cell::new(RangeSlice::new(0, 0)),

@@ -107,8 +107,10 @@ fn main() {
                         [0.0, 720.0/win_y as f32]
                     ];
                 }
-                Event::KeyboardInput(ElementState::Pressed, _, Some(VKeyCode::Space)) =>
-                    curve = curve.elevate(),
+                Event::KeyboardInput(ElementState::Pressed, _, Some(VKeyCode::Space)) => 
+                    if curve.order() < 20 {
+                        curve = curve.elevate();
+                    },
                 Event::MouseMoved(x, y) => {
                     mox =  pix_to_float(x, win_x) / data.window_matrix[0][0]; 
                     moy = -pix_to_float(y, win_y) / data.window_matrix[1][1];
