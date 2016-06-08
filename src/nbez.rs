@@ -243,9 +243,7 @@ pub struct NBez<P, V, F, C>
     factors: Cell<RangeSlice>,
     dfactors: Cell<RangeSlice>,
 
-    float_phantom: PhantomData<F>,
-    point_phantom: PhantomData<P>,
-    vector_phantom: PhantomData<V>
+    phantom: PhantomData<(F, P, V)>
 }
 
 impl<P, V, F, C> From<C> for NBez<P, V, F, C>
@@ -274,9 +272,7 @@ impl<P, V, F, C> NBez<P, V, F, C>
             factors: Cell::new(RangeSlice::new(0, 0)),
             dfactors: Cell::new(RangeSlice::new(0, 0)),
 
-            float_phantom: PhantomData,
-            point_phantom: PhantomData,
-            vector_phantom: PhantomData
+            phantom: PhantomData,
         }
     }
 
