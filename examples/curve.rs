@@ -5,14 +5,14 @@ extern crate gfx;
 extern crate gfx_window_glutin;
 extern crate glutin;
 
-use bev::{NBez, Point2d, Vector2d};
+use bev::{BezChain3o2d, Point2d};
 use bev::traits::*;
 
 use gfx::traits::FactoryExt;
 use gfx::{Factory, Device, Primitive, BufferRole, Bind, Slice, IndexBuffer};
 use gfx::state::Rasterizer;
 
-use glutin::{Event, ElementState, MouseButton, VirtualKeyCode as VKeyCode};
+use glutin::{Event, ElementState, MouseButton};
 
 pub type ColorFormat = gfx::format::Rgba8;
 pub type DepthFormat = gfx::format::DepthStencil;
@@ -47,11 +47,15 @@ fn main() {
         pipe::new()
     ).unwrap();
 
-    let mut curve: NBez<Point2d<_>, Vector2d<_>, _, _> = NBez::from_container([
+    let mut curve_chain = BezChain3o2d::from_container(vec![
         Point2d::new(-0.5, -0.5),
-        Point2d::new(-0.5,  0.5),
+        Point2d::new( 0.0, -0.5),
+        Point2d::new(-0.5,  0.0),
+        Point2d::new( 0.0,  0.0),
+        Point2d::new( 0.5,  0.0),
+        Point2d::new( 0.0,  0.5),
         Point2d::new( 0.5,  0.5)
-    ]).elevate();
+    ]);
 
     let radius = 0.02;
     let circle = gen_circle(16, radius, [1.0, 0.0, 0.0]);
@@ -107,16 +111,12 @@ fn main() {
                         [0.0, 720.0/win_y as f32]
                     ];
                 }
-                Event::KeyboardInput(ElementState::Pressed, _, Some(VKeyCode::Space)) => 
-                    if curve.order() < 20 {
-                        curve = curve.elevate();
-                    },
                 Event::MouseMoved(x, y) => {
                     mox =  pix_to_float(x, win_x) / data.window_matrix[0][0]; 
                     moy = -pix_to_float(y, win_y) / data.window_matrix[1][1];
                 }
                 Event::MouseInput(ElementState::Pressed, MouseButton::Left) => {
-                    for (i, c) in curve.as_ref().iter().enumerate() {
+                    for (i, c) in curve_chain.as_ref().iter().enumerate() {
                         let dist = (c.x-mox).hypot(c.y-moy);
                         if dist <= radius {
                             selected = i as isize;
@@ -124,39 +124,46 @@ fn main() {
                     }
                 }
                 Event::MouseInput(ElementState::Released, MouseButton::Left) => selected = -1,
+                Event::MouseInput(ElementState::Pressed, MouseButton::Right) =>
+                    curve_chain.as_mut().push(Point2d::new(mox, moy)),
                 _ => ()
             }
         }
 
         // If any control point is selected, move that control point with the mouse.
         if 0 <= selected {
-            let c = &mut curve.as_mut()[selected as usize];
+            let c = &mut curve_chain.as_mut()[selected as usize];
             c.x = mox;
             c.y = moy;
         }
 
-        // Calculate curve vertices based on control point position.
-        for i in 0..SAMPLES {
-            let t = i as f32/(SAMPLES-1) as f32;
-
-            let interp = curve.interp(t).unwrap();
-
-            let perp = curve.slope(t).unwrap().normalize().perp() * 0.01;
-            cverts[i*2].pos = (-perp + interp).into();
-            cverts[i*2 + 1].pos = (perp + interp).into();
-        }
-        encoder.update_buffer(&cvert_buffer, &cverts, 0).unwrap(); // Upload calculated vertex positions to vertex buffer
 
         // Drawing code
         encoder.clear(&data.out, [0.0, 0.0, 0.0, 1.0]);
 
-        data.offset = [0.0, 0.0];
-        data.vbuf = cvert_buffer.clone();
-        encoder.draw(&cvert_slice, &pso, &data);
+        for curve in curve_chain.iter() {        
+            // Calculate curve vertices based on control point position.
+            for i in 0..SAMPLES {
+                let t = i as f32/(SAMPLES-1) as f32;
 
+                let interp = curve.interp(t).unwrap();
+
+                let perp = curve.slope(t).unwrap().normalize().perp() * 0.01;
+                cverts[i*2].pos = (-perp + interp).into();
+                cverts[i*2 + 1].pos = (perp + interp).into();
+            }
+            encoder.update_buffer(&cvert_buffer, &cverts, 0).unwrap(); // Upload calculated vertex positions to vertex buffer
+
+
+            data.offset = [0.0, 0.0];
+            data.vbuf = cvert_buffer.clone();
+            encoder.draw(&cvert_slice, &pso, &data);
+        }
+
+        // Draw control points
         data.vbuf = cir_buffer.clone();
-        for p in curve.as_ref().iter() {
-            data.offset = (*p).into();
+        for point in curve_chain.as_ref().iter() {
+            data.offset = (*point).into();
             encoder.draw(&cir_slice, &pso, &data);
         }
 

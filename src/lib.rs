@@ -7,6 +7,9 @@ pub mod traitdefs;
 pub mod traits;
 pub use nbez::*;
 use traitdefs::Float;
+use traits::BezCurve;
+
+use std::marker::PhantomData;
 
 #[inline]
 fn lerp<F: Float>(a: F, b: F, factor: F) -> F {
@@ -26,5 +29,84 @@ impl<F: traitdefs::Float> Vector2d<F> {
             x: -self.y,
             y: self.x
         }
+    }
+}
+
+pub struct BezIter<F: Float, B: BezCurve<F>> {
+    points: *const B::Point,
+    len: usize,
+    order: usize
+}
+
+impl<F: Float, B: BezCurve<F>> Iterator for BezIter<F, B> {
+    type Item = B;
+    fn next(&mut self) -> Option<B> {
+        use std::slice;
+
+        if self.len <= self.order {
+            None
+        } else {unsafe{
+            let slice = slice::from_raw_parts(self.points, self.order + 1);
+            self.points = self.points.offset(self.order as isize);
+            self.len -= self.order;
+            B::from_slice(slice)
+        }}
+    }
+}
+
+pub struct BezChain3o2d<F, C>
+        where F: Float,
+              C: AsRef<[Point2d<F>]>
+{
+    points: C,
+    phantom: PhantomData<F>
+}
+
+impl<F, C> BezChain3o2d<F, C>
+        where F: Float,
+              C: AsRef<[Point2d<F>]>
+{
+    pub fn from_container(container: C) -> BezChain3o2d<F, C> {
+        BezChain3o2d {
+            points: container,
+            phantom: PhantomData
+        }
+    }
+
+    pub fn curve(&self, index: usize) -> Bez3o2d<F> {
+        use traits::BezCurve;
+
+        let curve_index = index * 3;
+        Bez3o2d::from_slice(&self.points.as_ref()[curve_index..curve_index+4]).unwrap()
+    }
+
+    pub fn iter(&self) -> BezIter<F, Bez3o2d<F>> {
+        BezIter {
+            points: self.points.as_ref().as_ptr(),
+            len: self.points.as_ref().len(),
+            order: 3
+        }
+    }
+
+    pub fn unwrap(self) -> C {
+        self.points
+    }
+}
+
+impl<F, C> AsRef<C> for BezChain3o2d<F, C> 
+        where F: Float,
+              C: AsRef<[Point2d<F>]>
+{
+    fn as_ref(&self) -> &C {
+        &self.points
+    }
+}
+
+impl<F, C> AsMut<C> for BezChain3o2d<F, C> 
+        where F: Float,
+              C: AsRef<[Point2d<F>]>
+{
+    fn as_mut(&mut self) -> &mut C {
+        &mut self.points
     }
 }
