@@ -23,7 +23,7 @@ fn lerp<F: Float>(a: F, b: F, factor: F) -> F {
 // macro. So, the macro invocations are generated with the build script and then inserted here.
 include!(concat!(env!("OUT_DIR"), "/macro_invocs.rs"));
 
-impl<F: traitdefs::Float> Vector2d<F> {
+impl<F: Float> Vector2d<F> {
     pub fn perp(self) -> Vector2d<F> {
         Vector2d {
             x: -self.y,
@@ -48,6 +48,23 @@ impl<F: Float, B: BezCurve<F>> Iterator for BezIter<F, B> {
         } else {unsafe{
             let slice = slice::from_raw_parts(self.points, self.order + 1);
             self.points = self.points.offset(self.order as isize);
+            self.len -= self.order;
+            B::from_slice(slice)
+        }}
+    }
+}
+
+impl<F: Float, B: BezCurve<F>> DoubleEndedIterator for BezIter<F, B> {
+    fn next_back(&mut self) -> Option<B> {
+        use std::slice;
+
+        // If there are any control points in the iterator that can't be used to create a full curve,
+        // ignore them.
+        let end = self.len - (self.len - 1) % self.order;
+        if end <= self.order {            
+            None
+        } else {unsafe{
+            let slice = slice::from_raw_parts(self.points.offset((end-self.order-1) as isize), self.order + 1);
             self.len -= self.order;
             B::from_slice(slice)
         }}

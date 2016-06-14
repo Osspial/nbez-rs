@@ -141,7 +141,7 @@ fn main() {
         // Drawing code
         encoder.clear(&data.out, [0.0, 0.0, 0.0, 1.0]);
 
-        for curve in curve_chain.iter() {        
+        for curve in curve_chain.iter() {
             // Calculate curve vertices based on control point position.
             for i in 0..SAMPLES {
                 let t = i as f32/(SAMPLES-1) as f32;
