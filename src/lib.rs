@@ -4,10 +4,8 @@ extern crate num;
 mod macros;
 mod nbez;
 pub mod traitdefs;
-pub mod traits;
 pub use nbez::*;
 use traitdefs::Float;
-use traits::BezCurve;
 
 #[inline]
 fn lerp<F: Float>(a: F, b: F, factor: F) -> F {
@@ -75,3 +73,43 @@ impl<F: Float, B: BezCurve<F>> DoubleEndedIterator for BezIter<F, B> {
 }
 
 impl<F: Float, B:BezCurve<F>> ExactSizeIterator for BezIter<F, B> {}
+
+
+pub trait BezCurve<F: Float> 
+        where Self: Sized {
+    type Point;
+    type Vector;
+    type Elevated;
+
+    /// Attempt to create a curve from a slice. Fails if the slice's length does not match the
+    /// curve's order + 1, or if it is being used to create an `NBez`/`NBezPoly`.
+    fn from_slice(&[Self::Point]) -> Option<Self>;
+
+    /// Perform interpolation on the curve for a value of `t` from `0.0` to `1.0` inclusive. Returns `None`
+    /// if `t` is outside of that range.
+    fn interp(&self, t: F) -> Option<Self::Point> {
+        check_t_bounds!(t);
+        Some(self.interp_unbounded(t))
+    }
+    /// Perform interpolation on the curve with no range bounds
+    fn interp_unbounded(&self, t: F) -> Self::Point;
+
+    /// Get the slope for the given `t`, bounded on `0.0` to `1.0` inclusive. Returns `None` if
+    /// `t` is not within bounds.
+    fn slope(&self, t: F) -> Option<Self::Vector> {
+        check_t_bounds!(t);
+        Some(self.slope_unbounded(t))
+    }
+    /// Get the slope for the given `t` with no range bounds
+    fn slope_unbounded(&self, t: F) -> Self::Vector;
+
+    fn elevate(&self) -> Self::Elevated;
+    
+    /// Gets the order of the curve
+    fn order(&self) -> usize;
+}
+
+/// Gets the statically-known order of the curve
+pub trait OrderStatic {
+    fn order_static() -> usize;
+}

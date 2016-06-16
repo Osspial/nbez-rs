@@ -3,7 +3,7 @@ use std::convert::{AsRef, AsMut, From};
 use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 
-use super::traits::BezCurve;
+use super::BezCurve;
 use super::lerp;
 
 /// A struct that contains range information for slicing, used for slicing into the global factor
