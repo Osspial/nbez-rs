@@ -127,7 +127,7 @@ fn main() {
                 }
                 writeln!(file, ";").unwrap();
             }
-            writeln!(file, "}}}}").unwrap();
+            writeln!(file, "}} chained BezChain{}o{}d}}", order, dim).unwrap();
         }
     }
 }

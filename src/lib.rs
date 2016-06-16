@@ -9,8 +9,6 @@ pub use nbez::*;
 use traitdefs::Float;
 use traits::BezCurve;
 
-use std::marker::PhantomData;
-
 #[inline]
 fn lerp<F: Float>(a: F, b: F, factor: F) -> F {
     let fact1 = F::from_f32(1.0).unwrap() - factor;
@@ -68,62 +66,5 @@ impl<F: Float, B: BezCurve<F>> DoubleEndedIterator for BezIter<F, B> {
             self.len -= self.order;
             B::from_slice(slice)
         }}
-    }
-}
-
-pub struct BezChain3o2d<F, C>
-        where F: Float,
-              C: AsRef<[Point2d<F>]>
-{
-    points: C,
-    phantom: PhantomData<F>
-}
-
-impl<F, C> BezChain3o2d<F, C>
-        where F: Float,
-              C: AsRef<[Point2d<F>]>
-{
-    pub fn from_container(container: C) -> BezChain3o2d<F, C> {
-        BezChain3o2d {
-            points: container,
-            phantom: PhantomData
-        }
-    }
-
-    pub fn curve(&self, index: usize) -> Bez3o2d<F> {
-        use traits::BezCurve;
-
-        let curve_index = index * 3;
-        Bez3o2d::from_slice(&self.points.as_ref()[curve_index..curve_index+4]).unwrap()
-    }
-
-    pub fn iter(&self) -> BezIter<F, Bez3o2d<F>> {
-        BezIter {
-            points: self.points.as_ref().as_ptr(),
-            len: self.points.as_ref().len(),
-            order: 3
-        }
-    }
-
-    pub fn unwrap(self) -> C {
-        self.points
-    }
-}
-
-impl<F, C> AsRef<C> for BezChain3o2d<F, C> 
-        where F: Float,
-              C: AsRef<[Point2d<F>]>
-{
-    fn as_ref(&self) -> &C {
-        &self.points
-    }
-}
-
-impl<F, C> AsMut<C> for BezChain3o2d<F, C> 
-        where F: Float,
-              C: AsRef<[Point2d<F>]>
-{
-    fn as_mut(&mut self) -> &mut C {
-        &mut self.points
     }
 }

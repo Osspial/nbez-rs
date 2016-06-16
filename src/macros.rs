@@ -282,7 +282,7 @@ macro_rules! bez_composite {
         $($dim:ident = $($dfield:ident),+;)+
     } elevated $elevated:ident<$($est:ty),+> {
         $($eindex:expr => $($edim:ident),+;)+
-    }) => 
+    } chained $chain:ident) => 
     {
         #[derive(Debug, Clone, Copy)]
         pub struct $name<F: $crate::traitdefs::Float> {
@@ -304,7 +304,8 @@ macro_rules! bez_composite {
         }
 
         impl<F> $crate::traits::BezCurve<F> for $name<F>
-                where F: $crate::traitdefs::Float {
+                where F: $crate::traitdefs::Float 
+        {
             type Point = $point<F>;
             type Vector = $vector<F>;
             type Elevated = $elevated<$($est),+>;
@@ -346,14 +347,18 @@ macro_rules! bez_composite {
             }
         }
 
-        impl<F> ::std::convert::From<[$point<F>; count!($($field),+)]> for $name<F> where F: $crate::traitdefs::Float {
+        impl<F> ::std::convert::From<[$point<F>; count!($($field),+)]> for $name<F>
+                where F: $crate::traitdefs::Float 
+        {
             fn from(array: [$point<F>; count!($($field),+)]) -> $name<F> {
                 use $crate::traits::BezCurve;
                 $name::from_slice(&array[..]).unwrap()
             }
         }
 
-        impl<F> ::std::convert::AsRef<[$point<F>]> for $name<F> where F: $crate::traitdefs::Float {
+        impl<F> ::std::convert::AsRef<[$point<F>]> for $name<F>
+                where F: $crate::traitdefs::Float 
+        {
             fn as_ref(&self) -> &[$point<F>] {
                 use std::slice;
                 unsafe {
@@ -362,12 +367,73 @@ macro_rules! bez_composite {
             }
         }
 
-        impl<F> ::std::convert::AsMut<[$point<F>]> for $name<F> where F: $crate::traitdefs::Float {
+        impl<F> ::std::convert::AsMut<[$point<F>]> for $name<F>
+                where F: $crate::traitdefs::Float 
+        {
             fn as_mut(&mut self) -> &mut [$point<F>] {
                 use std::slice;
                 unsafe {
                     slice::from_raw_parts_mut(self as *mut $name<F> as *mut $point<F>, count!($($field),+))
                 }
+            }
+        }
+
+        #[derive(Clone, Copy)]
+        pub struct $chain<F, C>
+                where F: $crate::traitdefs::Float,
+                      C: AsRef<[$point<F>]>
+        {
+            points: C,
+            phantom: ::std::marker::PhantomData<F>
+        }
+
+        impl<F, C> $chain<F, C>
+                where F: $crate::traitdefs::Float,
+                      C: AsRef<[$point<F>]>
+        {
+            pub fn from_container(container: C) -> $chain<F, C> {
+                $chain {
+                    points: container,
+                    phantom: ::std::marker::PhantomData
+                }
+            }
+
+            pub fn curve(&self, index: usize) -> $name<F> {
+                use traits::BezCurve;
+
+                let order = $name::<F>::order_static().unwrap();
+                let curve_index = index * order;
+                $name::from_slice(&self.points.as_ref()[curve_index..curve_index + order + 1]).unwrap()
+            }
+
+            pub fn iter(&self) -> ::BezIter<F, $name<F>> {
+                ::BezIter {
+                    points: self.points.as_ref().as_ptr(),
+                    len: self.points.as_ref().len(),
+                    order: $name::<F>::order_static().unwrap()
+                }
+            }
+
+            pub fn unwrap(self) -> C {
+                self.points
+            }
+        }
+
+        impl<F, C> AsRef<C> for $chain<F, C> 
+                where F: Float,
+                      C: AsRef<[$point<F>]>
+        {
+            fn as_ref(&self) -> &C {
+                &self.points
+            }
+        }
+
+        impl<F, C> AsMut<C> for $chain<F, C> 
+                where F: Float,
+                      C: AsRef<[$point<F>]>
+        {
+            fn as_mut(&mut self) -> &mut C {
+                &mut self.points
             }
         }
     };
