@@ -414,18 +414,20 @@ macro_rules! bez_composite {
             phantom: ::std::marker::PhantomData<F>
         }
 
-        impl<F, C> $chain<F, C>
+        impl<F, C> $crate::BezChain<F, C> for $chain<F, C>
                 where F: $crate::traitdefs::Float,
                       C: AsRef<[$point<F>]>
         {
-            pub fn from_container(container: C) -> $chain<F, C> {
+            type Curve = $name<F>;
+            
+            fn from_container(container: C) -> $chain<F, C> {
                 $chain {
                     points: container,
                     phantom: ::std::marker::PhantomData
                 }
             }
 
-            pub fn curve(&self, index: usize) -> $name<F> {
+            fn get(&self, index: usize) -> $name<F> {
                 use $crate::{BezCurve, OrderStatic};
 
                 let order = $name::<F>::order_static();
@@ -433,7 +435,7 @@ macro_rules! bez_composite {
                 $name::from_slice(&self.points.as_ref()[curve_index..curve_index + order + 1]).unwrap()
             }
 
-            pub fn iter(&self) -> $crate::BezIter<F, $name<F>> {
+            fn iter(&self) -> $crate::BezIter<F, $name<F>> {
                 use $crate::OrderStatic;
 
                 $crate::BezIter {
@@ -443,7 +445,7 @@ macro_rules! bez_composite {
                 }
             }
 
-            pub fn unwrap(self) -> C {
+            fn unwrap(self) -> C {
                 self.points
             }
         }

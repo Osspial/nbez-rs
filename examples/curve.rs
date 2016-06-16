@@ -5,7 +5,7 @@ extern crate gfx;
 extern crate gfx_window_glutin;
 extern crate glutin;
 
-use bev::{BezCurve, BezChain3o2d, Point2d};
+use bev::{BezCurve, BezChain, BezChain3o2d, Point2d};
 
 use gfx::traits::FactoryExt;
 use gfx::{Factory, Device, Primitive, BufferRole, Bind, Slice, IndexBuffer};

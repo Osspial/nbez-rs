@@ -76,7 +76,8 @@ impl<F: Float, B:BezCurve<F>> ExactSizeIterator for BezIter<F, B> {}
 
 
 pub trait BezCurve<F: Float> 
-        where Self: Sized {
+        where Self: Sized
+{
     type Point;
     type Vector;
     type Elevated;
@@ -112,4 +113,17 @@ pub trait BezCurve<F: Float>
 /// Gets the statically-known order of the curve
 pub trait OrderStatic {
     fn order_static() -> usize;
+}
+
+pub trait BezChain<F, C>: AsRef<C> + AsMut<C>
+        where F: Float,
+              C: AsRef<[<Self::Curve as BezCurve<F>>::Point]>,
+              Self: Sized
+{
+    type Curve: BezCurve<F>;
+
+    fn from_container(C) -> Self;
+    fn get(&self, usize) -> Self::Curve;
+    fn iter(&self) -> BezIter<F, Self::Curve>;
+    fn unwrap(self) -> C;
 }
