@@ -50,6 +50,11 @@ impl<F: Float, B: BezCurve<F>> Iterator for BezIter<F, B> {
             B::from_slice(slice)
         }}
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let size = (self.len - (self.len - 1) % self.order) / self.order;
+        (size, Some(size))
+    }
 }
 
 impl<F: Float, B: BezCurve<F>> DoubleEndedIterator for BezIter<F, B> {
@@ -68,3 +73,5 @@ impl<F: Float, B: BezCurve<F>> DoubleEndedIterator for BezIter<F, B> {
         }}
     }
 }
+
+impl<F: Float, B:BezCurve<F>> ExactSizeIterator for BezIter<F, B> {}
