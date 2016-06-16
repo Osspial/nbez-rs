@@ -179,13 +179,15 @@ macro_rules! n_bezier {
         }
 
         impl<F> $crate::traits::BezCurve<F> for $name<F>
-                where F: $crate::traitdefs::Float {
+                where F: $crate::traitdefs::Float
+        {
             type Point = F;
             type Vector = F;
             type Elevated = $elevated<$($est),+>;
 
             fn from_slice(slice: &[F]) -> Option<$name<F>> {
-                if slice.len() - 1 != $name::<F>::order_static().unwrap() {
+                use $crate::traits::OrderStatic;
+                if slice.len() - 1 != $name::<F>::order_static() {
                     None
                 } else {
                     let mut index = -1;
@@ -241,20 +243,32 @@ macro_rules! n_bezier {
                     self.$eend])
             }
 
-            #[inline]
-            fn order_static() -> Option<usize> {
-                Some(count!($($field),+)-1)            
+            fn order(&self) -> usize {
+                use $crate::traits::OrderStatic;
+                $name::<F>::order_static()
             }
         }
 
-        impl<F> ::std::convert::From<[F; count!($($field),+)]> for $name<F> where F: $crate::traitdefs::Float {
+        impl<F> $crate::traits::OrderStatic for $name<F> 
+                where F: $crate::traitdefs::Float 
+        {
+            fn order_static() -> usize {
+                count!($($field),+)-1
+            }
+        }
+
+        impl<F> ::std::convert::From<[F; count!($($field),+)]> for $name<F> 
+                where F: $crate::traitdefs::Float 
+        {
             fn from(array: [F; count!($($field),+)]) -> $name<F> {
                 use $crate::traits::BezCurve;
                 $name::from_slice(&array[..]).unwrap()
             }
         }
 
-        impl<F> ::std::convert::AsRef<[F]> for $name<F> where F: $crate::traitdefs::Float {
+        impl<F> ::std::convert::AsRef<[F]> for $name<F> 
+                where F: $crate::traitdefs::Float 
+        {
             fn as_ref(&self) -> &[F] {
                 use std::slice;
                 unsafe {
@@ -263,7 +277,9 @@ macro_rules! n_bezier {
             }
         }
 
-        impl<F> ::std::convert::AsMut<[F]> for $name<F> where F: $crate::traitdefs::Float {
+        impl<F> ::std::convert::AsMut<[F]> for $name<F> 
+                where F: $crate::traitdefs::Float 
+        {
             fn as_mut(&mut self) -> &mut [F] {
                 use std::slice;
                 unsafe {
@@ -311,7 +327,8 @@ macro_rules! bez_composite {
             type Elevated = $elevated<$($est),+>;
 
             fn from_slice(slice: &[$point<F>]) -> Option<$name<F>> {
-                if slice.len() - 1 != $name::<F>::order_static().unwrap() {
+                use $crate::traits::OrderStatic;
+                if slice.len() - 1 != $name::<F>::order_static() {
                     None
                 } else {
                     let mut index = -1;
@@ -341,8 +358,18 @@ macro_rules! bez_composite {
                 $elevated::from([$($point::new($($edim.as_ref()[$eindex]),+)),+])
             }
 
+            fn order(&self) -> usize {
+                use $crate::traits::OrderStatic;
+                $poly::<F>::order_static()
+            }
+        }
+
+        impl<F> $crate::traits::OrderStatic for $name<F>
+                where F: $crate::traitdefs::Float
+        {
             #[inline]
-            fn order_static() -> Option<usize> {
+            fn order_static() -> usize {
+                use $crate::traits::OrderStatic;
                 $poly::<F>::order_static()
             }
         }
@@ -399,18 +426,20 @@ macro_rules! bez_composite {
             }
 
             pub fn curve(&self, index: usize) -> $name<F> {
-                use traits::BezCurve;
+                use $crate::traits::{BezCurve, OrderStatic};
 
-                let order = $name::<F>::order_static().unwrap();
+                let order = $name::<F>::order_static();
                 let curve_index = index * order;
                 $name::from_slice(&self.points.as_ref()[curve_index..curve_index + order + 1]).unwrap()
             }
 
-            pub fn iter(&self) -> ::BezIter<F, $name<F>> {
-                ::BezIter {
+            pub fn iter(&self) -> $crate::BezIter<F, $name<F>> {
+                use $crate::traits::OrderStatic;
+
+                $crate::BezIter {
                     points: self.points.as_ref().as_ptr(),
                     len: self.points.as_ref().len(),
-                    order: $name::<F>::order_static().unwrap()
+                    order: $name::<F>::order_static()
                 }
             }
 

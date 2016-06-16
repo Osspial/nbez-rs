@@ -211,10 +211,6 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
     fn order(&self) -> usize {
         self.points.as_ref().len()-1
     }
-
-    fn order_static() -> Option<usize> {
-        None
-    }
 }
 
 impl<F, C> AsRef<C> for NBezPoly<F, C>
@@ -360,10 +356,6 @@ impl<P, V, F, C> BezCurve<F> for NBez<P, V, F, C>
 
     fn order(&self) -> usize {
         self.points.as_ref().len() - 1
-    }
-
-    fn order_static() -> Option<usize> {
-        None
     }
 }
 

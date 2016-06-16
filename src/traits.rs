@@ -31,10 +31,10 @@ pub trait BezCurve<F: Float + FromPrimitive>
     fn elevate(&self) -> Self::Elevated;
     
     /// Gets the order of the curve
-    fn order(&self) -> usize {
-        Self::order_static().unwrap()
-    }
-    /// If the order of the curve can be statically determined at compile time, return `Some(order)`.
-    /// Otherwise, return `None`
-    fn order_static() -> Option<usize>;
+    fn order(&self) -> usize;
+}
+
+/// Gets the statically-known order of the curve
+pub trait OrderStatic {
+    fn order_static() -> usize;
 }
