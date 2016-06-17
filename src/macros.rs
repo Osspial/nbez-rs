@@ -68,13 +68,12 @@ macro_rules! n_pointvector {
             }
         }
 
-        impl<'a, F: $crate::traitdefs::Float> ::std::convert::From<&'a [F]> for $name<F> {
-            fn from(slice: &'a [F]) -> $name<F> {
-                assert_eq!(slice.len(), count!($($field),+));
+        impl<F: $crate::traitdefs::Float> ::std::convert::From<[F; $dims]> for $name<F> {
+            fn from(array: [F; $dims]) -> $name<F> {
                 let mut index = -1;
                 $name{$($field: {
                     index += 1;
-                    slice[index as usize]
+                    array[index as usize]
                 }),+}
             }
         }
