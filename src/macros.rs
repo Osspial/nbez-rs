@@ -177,14 +177,14 @@ macro_rules! n_bezier {
             }
         }
 
-        impl<F> $crate::BezCurve<F> for $name<F>
+        impl<'a, F> $crate::BezCurve<'a, F> for $name<F>
                 where F: $crate::traitdefs::Float
         {
             type Point = F;
             type Vector = F;
             type Elevated = $elevated<$($est),+>;
 
-            fn from_slice(slice: &[F]) -> Option<$name<F>> {
+            fn from_slice(slice: &'a [F]) -> Option<$name<F>> {
                 use $crate::OrderStatic;
                 if slice.len() - 1 != $name::<F>::order_static() {
                     None
@@ -318,14 +318,14 @@ macro_rules! bez_composite {
             )+
         }
 
-        impl<F> $crate::BezCurve<F> for $name<F>
+        impl<'a, F> $crate::BezCurve<'a, F> for $name<F>
                 where F: $crate::traitdefs::Float 
         {
             type Point = $point<F>;
             type Vector = $vector<F>;
             type Elevated = $elevated<$($est),+>;
 
-            fn from_slice(slice: &[$point<F>]) -> Option<$name<F>> {
+            fn from_slice(slice: &'a [$point<F>]) -> Option<$name<F>> {
                 use $crate::OrderStatic;
                 if slice.len() - 1 != $name::<F>::order_static() {
                     None
@@ -413,7 +413,7 @@ macro_rules! bez_composite {
             phantom: ::std::marker::PhantomData<F>
         }
 
-        impl<F, C> $crate::BezChain<F, C> for $chain<F, C>
+        impl<'a, F, C> $crate::BezChain<'a, F, C> for $chain<F, C>
                 where F: $crate::traitdefs::Float,
                       C: AsRef<[$point<F>]>
         {
@@ -434,7 +434,7 @@ macro_rules! bez_composite {
                 $name::from_slice(&self.points.as_ref()[curve_index..curve_index + order + 1]).unwrap()
             }
 
-            fn iter(&self) -> $crate::BezIter<F, $name<F>> {
+            fn iter(&self) -> $crate::BezIter<'a, F, $name<F>> {
                 use $crate::OrderStatic;
 
                 $crate::BezIter {

@@ -1,17 +1,21 @@
+// For some reason nightly rust throws a bunch of warnings about unused imports that are actually
+// being used and stable doesn't. Because n_dimensional_curves relies on nightly, disable those
+// warnings when it's enabled
+#![cfg_attr(feature = "n_dimensional_curves", allow(unused_imports))]
+#![cfg_attr(feature = "n_dimensional_curves", feature(specialization))]
+
 extern crate num;
 
 #[macro_use]
 mod macros;
-mod nbez;
 pub mod traitdefs;
-pub use nbez::*;
-use traitdefs::Float;
 
-#[inline]
-fn lerp<F: Float>(a: F, b: F, factor: F) -> F {
-    let fact1 = F::from_f32(1.0).unwrap() - factor;
-    a * factor + b * fact1
-}
+#[cfg(feature = "n_dimensional_curves")]
+mod nbez;
+#[cfg(feature = "n_dimensional_curves")]
+pub use nbez::*;
+
+use traitdefs::Float;
 
 // There are macros in place to make it easier to create new bezier structs, as they can be created
 // with a very consistent pattern. However, those macros are also written in a very consistent pattern
@@ -28,13 +32,13 @@ impl<F: Float> Vector2d<F> {
     }
 }
 
-pub struct BezIter<F: Float, B: BezCurve<F>> {
+pub struct BezIter<'a, F: 'a + Float, B: 'a + BezCurve<'a, F>> {
     points: *const B::Point,
     len: usize,
     order: usize
 }
 
-impl<F: Float, B: BezCurve<F>> Iterator for BezIter<F, B> {
+impl<'a, F: 'a + Float, B: 'a + BezCurve<'a, F>> Iterator for BezIter<'a, F, B> {
     type Item = B;
     fn next(&mut self) -> Option<B> {
         use std::slice;
@@ -55,7 +59,7 @@ impl<F: Float, B: BezCurve<F>> Iterator for BezIter<F, B> {
     }
 }
 
-impl<F: Float, B: BezCurve<F>> DoubleEndedIterator for BezIter<F, B> {
+impl<'a, F: 'a + Float, B: 'a + BezCurve<'a, F>> DoubleEndedIterator for BezIter<'a, F, B> {
     fn next_back(&mut self) -> Option<B> {
         use std::slice;
 
@@ -72,10 +76,10 @@ impl<F: Float, B: BezCurve<F>> DoubleEndedIterator for BezIter<F, B> {
     }
 }
 
-impl<F: Float, B:BezCurve<F>> ExactSizeIterator for BezIter<F, B> {}
+impl<'a, F: 'a + Float, B: 'a + BezCurve<'a, F>> ExactSizeIterator for BezIter<'a, F, B> {}
 
 
-pub trait BezCurve<F: Float> 
+pub trait BezCurve<'a, F: Float> 
         where Self: Sized
 {
     type Point;
@@ -84,7 +88,7 @@ pub trait BezCurve<F: Float>
 
     /// Attempt to create a curve from a slice. Fails if the slice's length does not match the
     /// curve's order + 1, or if it is being used to create an `NBez`/`NBezPoly`.
-    fn from_slice(&[Self::Point]) -> Option<Self>;
+    fn from_slice(&'a [Self::Point]) -> Option<Self>;
 
     /// Perform interpolation on the curve for a value of `t` from `0.0` to `1.0` inclusive. Returns `None`
     /// if `t` is outside of that range.
@@ -115,15 +119,105 @@ pub trait OrderStatic {
     fn order_static() -> usize;
 }
 
-pub trait BezChain<F, C>: AsRef<C> + AsMut<C>
+pub trait BezChain<'a, F, C>: AsRef<C> + AsMut<C>
         where F: Float,
-              C: AsRef<[<Self::Curve as BezCurve<F>>::Point]>,
+              C: AsRef<[<Self::Curve as BezCurve<'a, F>>::Point]>,
               Self: Sized
 {
-    type Curve: BezCurve<F>;
+    type Curve: BezCurve<'a, F>;
 
     fn from_container(C) -> Self;
     fn get(&self, usize) -> Self::Curve;
-    fn iter(&self) -> BezIter<F, Self::Curve>;
+    fn iter(&self) -> BezIter<'a, F, Self::Curve>;
     fn unwrap(self) -> C;
+}
+
+
+#[cfg(not(feature = "n_dimensional_curves"))]
+pub use nbez_dummy::*;
+#[cfg(not(feature = "n_dimensional_curves"))]
+mod nbez_dummy {
+    use super::*;
+    use traitdefs::*;
+    /// Dummy, non-functional implementation of `NBezPoly`. Actual implementation relies on
+    /// specialization, will remove when that gets stabilized. All implemented functions panic.
+    /// Present to make elevation functions compile for 6-order curves.
+    ///
+    /// **DO NOT USE**
+    pub struct NBezPoly<F, C> (::std::marker::PhantomData<(F, C)>);
+    impl<'a, F: Float, C> BezCurve<'a, F> for NBezPoly<F, C> {
+        type Point = ();
+        type Vector = ();
+        type Elevated = ();
+
+        fn from_slice(_: &'a [()]) -> Option<NBezPoly<F, C>> {
+            unimplemented!()
+        }
+
+        fn interp_unbounded(&self, _: F) -> () {
+            unimplemented!()
+        }
+
+        fn slope_unbounded(&self, _: F) -> () {
+            unimplemented!()
+        }
+
+        fn elevate(&self) -> () {
+            unimplemented!()
+        }
+
+        fn order(&self) -> usize {
+            unimplemented!()
+        }
+    }
+
+    impl<F, C> AsRef<[F]> for NBezPoly<F, C> {
+        fn as_ref(&self) -> &[F] {
+            unimplemented!()
+        }
+    }
+
+    impl<F, C> From<C> for NBezPoly<F, C> {
+        fn from(_: C) -> NBezPoly<F, C> {
+            unimplemented!()
+        }
+    }
+
+    /// Dummy, non-functional implementation of `NBez`. Actual implementation relies on
+    /// specialization, will remove when that gets stabilized. All implemented functions panic.
+    /// Present to make elevation functions compile for 6-order curves.
+    ///
+    /// **DO NOT USE**
+    pub struct NBez<P, V, F, C> (::std::marker::PhantomData<(P, V, F, C)>);
+    impl<'a, P, V, F: Float, C> BezCurve<'a, F> for NBez<P, V, F, C> {
+        type Point = ();
+        type Vector = ();
+        type Elevated = ();
+
+        fn from_slice(_: &'a [()]) -> Option<NBez<P, V, F, C>> {
+            unimplemented!()
+        }
+
+        fn interp_unbounded(&self, _: F) -> () {
+            unimplemented!()
+        }
+
+        fn slope_unbounded(&self, _: F) -> () {
+            unimplemented!()
+        }
+
+        fn elevate(&self) -> () {
+            unimplemented!()
+        }
+
+        fn order(&self) -> usize {
+            unimplemented!()
+        }
+    }
+
+    impl<P, V, F, C> From<C> for NBez<P, V, F, C> {
+        fn from(_: C) -> NBez<P, V, F, C> {
+            unimplemented!()
+        }
+    }
 }

@@ -4,7 +4,12 @@ use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 
 use super::BezCurve;
-use super::lerp;
+
+#[inline]
+fn lerp<F: Float>(a: F, b: F, factor: F) -> F {
+    let fact1 = F::from_f32(1.0).unwrap() - factor;
+    a * factor + b * fact1
+}
 
 /// A struct that contains range information for slicing, used for slicing into the global factor
 /// vector. The reason this is used instead of stdlib's `Range` struct is that `Range` does not
@@ -158,14 +163,14 @@ impl<F, C> NBezPoly<F, C>
     }
 }
 
-impl<F, C> BezCurve<F> for NBezPoly<F, C> 
+impl<'a, F, C> BezCurve<'a, F> for NBezPoly<F, C> 
         where F: Float,
               C: AsRef<[F]> {
     type Point = F;
     type Vector = F;
     type Elevated = NBezPoly<F>;
 
-    fn from_slice(_: &[F]) -> Option<NBezPoly<F, C>> {
+    fn from_slice(_: &'a [F]) -> Option<NBezPoly<F, C>> {
         None
     }
 
@@ -278,16 +283,27 @@ impl<P, V, F, C> NBez<P, V, F, C>
     }
 }
 
-impl<P, V, F, C> BezCurve<F> for NBez<P, V, F, C>
+impl<'a, P, V, F> BezCurve<'a, F> for NBez<P, V, F, &'a [P]>
+        where F: Float,
+              P: Point<F>,
+              V: Vector<F, P>
+{
+    fn from_slice(slice: &'a [P]) -> Option<NBez<P, V, F, &'a [P]>> {
+        Some(NBez::from_container(slice))
+    }
+}
+
+impl<'a, P, V, F, C> BezCurve<'a, F> for NBez<P, V, F, C>
         where F: Float,
               C: AsRef<[P]>,
-              P: Point<F> + ::std::fmt::Debug,
-              V: Vector<F, P> {
+              P: Point<F>,
+              V: Vector<F, P> 
+{
     type Point = P;
     type Vector = V;
     type Elevated = NBez<P, V, F, Vec<P>>;
 
-    fn from_slice(_: &[P]) -> Option<NBez<P, V, F, C>> {
+    default fn from_slice(_: &[P]) -> Option<NBez<P, V, F, C>> {
         None
     }
 
