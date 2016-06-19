@@ -163,6 +163,15 @@ impl<F, C> NBezPoly<F, C>
     }
 }
 
+#[cfg(feature = "n_dimensional_curve_chains")]
+impl<'a, F> BezCurve<'a, F> for NBezPoly<F, &'a [F]>
+        where F: Float
+{
+    fn from_slice(slice: &'a [F]) -> Option<NBezPoly<F, &'a [F]>> {
+        Some(NBezPoly::from_container(slice))
+    }
+}
+
 impl<'a, F, C> BezCurve<'a, F> for NBezPoly<F, C> 
         where F: Float,
               C: AsRef<[F]> {
@@ -170,6 +179,12 @@ impl<'a, F, C> BezCurve<'a, F> for NBezPoly<F, C>
     type Vector = F;
     type Elevated = NBezPoly<F>;
 
+    #[cfg(feature = "n_dimensional_curve_chains")]
+    default fn from_slice(_: &'a [F]) -> Option<NBezPoly<F, C>> {
+        None
+    }
+
+    #[cfg(not(feature = "n_dimensional_curve_chains"))]
     fn from_slice(_: &'a [F]) -> Option<NBezPoly<F, C>> {
         None
     }
