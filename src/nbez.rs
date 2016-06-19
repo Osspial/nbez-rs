@@ -283,7 +283,7 @@ impl<P, V, F, C> NBez<P, V, F, C>
     }
 }
 
-#[cfg(feature = "n_dimensional_curves")]
+#[cfg(feature = "n_dimensional_curve_chains")]
 impl<'a, P, V, F> BezCurve<'a, F> for NBez<P, V, F, &'a [P]>
         where F: Float,
               P: Point<F>,
@@ -304,12 +304,12 @@ impl<'a, P, V, F, C> BezCurve<'a, F> for NBez<P, V, F, C>
     type Vector = V;
     type Elevated = NBez<P, V, F, Vec<P>>;
 
-    #[cfg(feature = "n_dimensional_curves")]
+    #[cfg(feature = "n_dimensional_curve_chains")]
     default fn from_slice(_: &[P]) -> Option<NBez<P, V, F, C>> {
         None
     }
 
-    #[cfg(not(feature = "n_dimensional_curves"))]
+    #[cfg(not(feature = "n_dimensional_curve_chains"))]
     fn from_slice(_: &[P]) -> Option<NBez<P, V, F, C>> {
         None
     }

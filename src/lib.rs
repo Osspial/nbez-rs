@@ -1,8 +1,8 @@
 // For some reason nightly rust throws a bunch of warnings about unused imports that are actually
-// being used and stable doesn't. Because n_dimensional_curves relies on nightly, disable those
+// being used and stable doesn't. Because n_dimensional_curve_chains relies on nightly, disable those
 // warnings when it's enabled
-#![cfg_attr(feature = "n_dimensional_curves", allow(unused_imports))]
-#![cfg_attr(feature = "n_dimensional_curves", feature(specialization))]
+#![cfg_attr(feature = "n_dimensional_curve_chains", allow(unused_imports))]
+#![cfg_attr(feature = "n_dimensional_curve_chains", feature(specialization))]
 
 extern crate num;
 
