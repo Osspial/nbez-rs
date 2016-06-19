@@ -10,9 +10,7 @@ extern crate num;
 mod macros;
 pub mod traitdefs;
 
-#[cfg(feature = "n_dimensional_curves")]
 mod nbez;
-#[cfg(feature = "n_dimensional_curves")]
 pub use nbez::*;
 
 use traitdefs::Float;
@@ -130,94 +128,4 @@ pub trait BezChain<'a, F, C>: AsRef<C> + AsMut<C>
     fn get(&self, usize) -> Self::Curve;
     fn iter(&self) -> BezIter<'a, F, Self::Curve>;
     fn unwrap(self) -> C;
-}
-
-
-#[cfg(not(feature = "n_dimensional_curves"))]
-pub use nbez_dummy::*;
-#[cfg(not(feature = "n_dimensional_curves"))]
-mod nbez_dummy {
-    use super::*;
-    use traitdefs::*;
-    /// Dummy, non-functional implementation of `NBezPoly`. Actual implementation relies on
-    /// specialization, will remove when that gets stabilized. All implemented functions panic.
-    /// Present to make elevation functions compile for 6-order curves.
-    ///
-    /// **DO NOT USE**
-    pub struct NBezPoly<F, C> (::std::marker::PhantomData<(F, C)>);
-    impl<'a, F: Float, C> BezCurve<'a, F> for NBezPoly<F, C> {
-        type Point = ();
-        type Vector = ();
-        type Elevated = ();
-
-        fn from_slice(_: &'a [()]) -> Option<NBezPoly<F, C>> {
-            unimplemented!()
-        }
-
-        fn interp_unbounded(&self, _: F) -> () {
-            unimplemented!()
-        }
-
-        fn slope_unbounded(&self, _: F) -> () {
-            unimplemented!()
-        }
-
-        fn elevate(&self) -> () {
-            unimplemented!()
-        }
-
-        fn order(&self) -> usize {
-            unimplemented!()
-        }
-    }
-
-    impl<F, C> AsRef<[F]> for NBezPoly<F, C> {
-        fn as_ref(&self) -> &[F] {
-            unimplemented!()
-        }
-    }
-
-    impl<F, C> From<C> for NBezPoly<F, C> {
-        fn from(_: C) -> NBezPoly<F, C> {
-            unimplemented!()
-        }
-    }
-
-    /// Dummy, non-functional implementation of `NBez`. Actual implementation relies on
-    /// specialization, will remove when that gets stabilized. All implemented functions panic.
-    /// Present to make elevation functions compile for 6-order curves.
-    ///
-    /// **DO NOT USE**
-    pub struct NBez<P, V, F, C> (::std::marker::PhantomData<(P, V, F, C)>);
-    impl<'a, P, V, F: Float, C> BezCurve<'a, F> for NBez<P, V, F, C> {
-        type Point = ();
-        type Vector = ();
-        type Elevated = ();
-
-        fn from_slice(_: &'a [()]) -> Option<NBez<P, V, F, C>> {
-            unimplemented!()
-        }
-
-        fn interp_unbounded(&self, _: F) -> () {
-            unimplemented!()
-        }
-
-        fn slope_unbounded(&self, _: F) -> () {
-            unimplemented!()
-        }
-
-        fn elevate(&self) -> () {
-            unimplemented!()
-        }
-
-        fn order(&self) -> usize {
-            unimplemented!()
-        }
-    }
-
-    impl<P, V, F, C> From<C> for NBez<P, V, F, C> {
-        fn from(_: C) -> NBez<P, V, F, C> {
-            unimplemented!()
-        }
-    }
 }
