@@ -444,8 +444,21 @@ macro_rules! bez_composite {
                 }
             }
 
+            fn order(&self) -> usize {
+                $name::<F>::order_static()
+            }
+
             fn unwrap(self) -> C {
                 self.points
+            }
+        }
+
+        impl<F, C> $crate::OrderStatic for $chain<F, C>
+                where F: $crate::traitdefs::Float,
+                      C: AsRef<[$point<F>]>
+        {
+            fn order_static() -> usize {
+                $name::<F>::order_static()
             }
         }
 

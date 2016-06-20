@@ -127,5 +127,6 @@ pub trait BezChain<'a, F, C>: AsRef<C> + AsMut<C>
     fn from_container(C) -> Self;
     fn get(&self, usize) -> Self::Curve;
     fn iter(&self) -> BezIter<'a, F, Self::Curve>;
+    fn order(&self) -> usize;
     fn unwrap(self) -> C;
 }
