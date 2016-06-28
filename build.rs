@@ -5,7 +5,7 @@ use std::env;
 use std::io::Write;
 
 const MIN_DIMS: usize = 2;
-const MIN_ORDER: usize = 2;
+const MIN_ORDER: usize = 1;
 
 const MAX_DIMS: usize = 4;
 const MAX_ORDER: usize = 6;
