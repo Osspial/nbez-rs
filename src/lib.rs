@@ -30,7 +30,6 @@ pub struct BezIter<'a, F, B>
               B: BezCurve<F> + OrderStatic {
     points: *const B::Point,
     len: usize,
-    order: usize,
     lifetime: PhantomData<&'a ()>
 }
 
@@ -41,18 +40,21 @@ impl<'a, F, B> Iterator for BezIter<'a, F, B>
     fn next(&mut self) -> Option<B> {
         use std::slice;
 
-        if self.len <= self.order {
+        let order = B::order_static();
+
+        if self.len <= order {
             None
         } else {unsafe{
-            let slice = slice::from_raw_parts(self.points, self.order + 1);
-            self.points = self.points.offset(self.order as isize);
-            self.len -= self.order;
+            let slice = slice::from_raw_parts(self.points, order + 1);
+            self.points = self.points.offset(order as isize);
+            self.len -= order;
             B::from_slice(slice)
         }}
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let size = (self.len - (self.len - 1) % self.order) / self.order;
+        let order = B::order_static();
+        let size = (self.len - (self.len - 1) % order) / order;
         (size, Some(size))
     }
 }
@@ -63,14 +65,16 @@ impl<'a, F, B> DoubleEndedIterator for BezIter<'a, F, B>
     fn next_back(&mut self) -> Option<B> {
         use std::slice;
 
+        let order = B::order_static();
+
         // If there are any control points in the iterator that can't be used to create a full curve,
         // ignore them.
-        let end = self.len - (self.len - 1) % self.order;
-        if end <= self.order {            
+        let end = self.len - (self.len - 1) % order;
+        if end <= order {            
             None
         } else {unsafe{
-            let slice = slice::from_raw_parts(self.points.offset((end-self.order-1) as isize), self.order + 1);
-            self.len -= self.order;
+            let slice = slice::from_raw_parts(self.points.offset((end-order-1) as isize), order + 1);
+            self.len -= order;
             B::from_slice(slice)
         }}
     }
@@ -154,7 +158,6 @@ impl<F, B, C> BezChain<F, B, C>
         BezIter {
             points: self.points.as_ref().as_ptr(),
             len: self.points.as_ref().len(),
-            order: B::order_static(),
             lifetime: PhantomData
         }
     }
@@ -197,17 +200,3 @@ impl<F, B, C> AsMut<C> for BezChain<F, B, C>
         &mut self.points
     }
 }
-
-// pub trait BezChain<F, C>: AsRef<C> + AsMut<C>
-//         where F: Float,
-//               C: AsRef<[<Self::Curve as BezCurve<F>>::Point]>,
-//               Self: Sized
-// {
-//     type Curve: BezCurve<F>;
-
-//     fn from_container(C) -> Self;
-//     fn get(&self, usize) -> Self::Curve;
-//     fn iter(&self) -> BezIter<F, Self::Curve>;
-//     fn order(&self) -> usize;
-//     fn unwrap(self) -> C;
-// }
