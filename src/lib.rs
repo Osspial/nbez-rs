@@ -93,7 +93,7 @@ pub trait BezCurve<F: Float>
 {
     type Point;
     type Vector;
-    type Elevated;
+    type Elevated: BezCurve<F, Point = Self::Point, Vector = Self::Vector>;
 
     /// Attempt to create a curve from a slice. Fails if the slice's length does not match the
     /// curve's order + 1, or if it is being used to create an `NBez`/`NBezPoly`.
