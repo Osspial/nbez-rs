@@ -153,7 +153,7 @@ impl<F, C> NBezPoly<F, C>
             for point in iter {
                 acc = acc + t.powi(factor as i32) *
                             t1.powi((order-factor) as i32) *
-                            (point_next - point) *
+                            (point - point_next) *
                             F::from_u64(fs.1[dfactors.start + factor] * (order + 1) as u64).unwrap();
                 point_next = point;
                 factor += 1;
