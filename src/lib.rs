@@ -8,6 +8,7 @@ mod nbez;
 pub use nbez::*;
 
 use traitdefs::Float;
+use std::fmt::Debug;
 use std::marker::PhantomData;
 
 // There are macros in place to make it easier to create new bezier structs, as they can be created
@@ -25,6 +26,7 @@ impl<F: Float> Vector2d<F> {
     }
 }
 
+/// Iterator over bezier curve chains
 pub struct BezIter<'a, F, B>
         where F: Float,
               B: BezCurve<F> + OrderStatic {
@@ -85,6 +87,7 @@ impl<'a, F, B> ExactSizeIterator for BezIter<'a, F, B>
               B: BezCurve<F> + OrderStatic {}
 
 
+/// Bezier curve trait
 pub trait BezCurve<F: Float> 
         where Self: Sized
 {
@@ -111,9 +114,11 @@ pub trait BezCurve<F: Float>
         check_t_bounds!(t);
         Some(self.slope_unbounded(t))
     }
-    /// Get the slope for the given `t` with no range bounds
+    /// Get the slope for the given `t` with no range bounds.
     fn slope_unbounded(&self, t: F) -> Self::Vector;
 
+    /// Elevate the curve order, getting a curve that is one order higher but gives the same results
+    /// upon interpolation
     fn elevate(&self) -> Self::Elevated;
     
     /// Gets the order of the curve
@@ -126,6 +131,7 @@ pub trait OrderStatic {
 }
 
 
+/// A chain on bezier curves, with the last point of each curve being the first point of the next.
 #[derive(Clone, Copy)]
 pub struct BezChain<F, B, C>
         where F: Float,
@@ -140,7 +146,9 @@ impl<F, B, C> BezChain<F, B, C>
         where F: Float,
               B: BezCurve<F> + OrderStatic,
               C: AsRef<[B::Point]>
-{    
+{
+    /// Create a new BezChain by wrapping around a container.
+    #[inline]
     pub fn from_container(container: C) -> BezChain<F, B, C> {
         BezChain {
             points: container,
@@ -148,6 +156,8 @@ impl<F, B, C> BezChain<F, B, C>
         }
     }
 
+    /// Get the bezier curve that is `index` curves away from the start. Returns `None` if not enough
+    /// points exist for the given curve index.
     pub fn get(&self, index: usize) -> Option<B> {
         let len = self.points.as_ref().len();
         let order = B::order_static();
@@ -161,6 +171,8 @@ impl<F, B, C> BezChain<F, B, C>
         }
     }
 
+    /// Get an iterator over all curves in the chain.
+    #[inline]
     pub fn iter(&self) -> BezIter<F, B> {
         BezIter {
             points: self.points.as_ref().as_ptr(),
@@ -169,10 +181,14 @@ impl<F, B, C> BezChain<F, B, C>
         }
     }
 
+    /// Get the order of the chain's curves. Identical to order_static().
+    #[inline]
     pub fn order(&self) -> usize {
         B::order_static()
     }
 
+    /// Unwrap the chain, returning the underlying container.
+    #[inline]
     pub fn unwrap(self) -> C {
         self.points
     }
@@ -183,6 +199,7 @@ impl<F, B, C> OrderStatic for BezChain<F, B, C>
               B: BezCurve<F> + OrderStatic,
               C: AsRef<[B::Point]>
 {
+    #[inline]
     fn order_static() -> usize {
         B::order_static()
     }

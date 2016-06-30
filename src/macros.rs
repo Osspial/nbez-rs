@@ -54,8 +54,9 @@ macro_rules! n_pointvector {
         }
     };
 
-    (struct $dims:expr; $name:ident {$($field:ident: $f_ty:ident),+} $sibling:ident) => {
+    (struct $doc:expr, $dims:expr; $name:ident {$($field:ident: $f_ty:ident),+} $sibling:ident) => {
         #[derive(Debug, Clone, Copy)]
+        #[doc=$doc]
         pub struct $name<F: $crate::traitdefs::Float> {
             $(pub $field: F),+
         }
@@ -121,9 +122,9 @@ macro_rules! n_pointvector {
         n_pointvector!(float ops $name {$($field),+});
     };
 
-    ($dims:expr; $p_name:ident, $v_name:ident {$($field:ident),+}) => {
-        n_pointvector!(struct $dims; $p_name {$($field: F),+} $v_name);
-        n_pointvector!(struct $dims; $v_name {$($field: F),+} $p_name);
+    ($p_doc:expr, $v_doc:expr, $dims:expr; $p_name:ident, $v_name:ident {$($field:ident),+}) => {
+        n_pointvector!(struct $p_doc, $dims; $p_name {$($field: F),+} $v_name);
+        n_pointvector!(struct $v_doc, $dims; $v_name {$($field: F),+} $p_name);
 
         impl<F: $crate::traitdefs::Float> $v_name<F> {
             pub fn len(self) -> F {
@@ -149,13 +150,8 @@ macro_rules! check_t_bounds {
 }
 
 // Polynomial Macros
-macro_rules! count {
-    ($idc:tt) => (1);
-    ($($element:tt),*) => {{$(count!($element) +)* 0}};
-}
-
 macro_rules! n_bezier {
-    ($name:ident {
+    ($doc:expr, $order:expr; $name:ident {
         $($field:ident: $weight:expr),+
     } derived {
         $($dleft:ident - $dright:ident: $dweight:expr),+
@@ -165,6 +161,7 @@ macro_rules! n_bezier {
         $eend:ident;
     }) => {
         #[derive(Debug, Clone, Copy)]
+        #[doc=$doc]
         pub struct $name<F> where F: $crate::traitdefs::Float {
             $(pub $field: F),+
         }
@@ -199,7 +196,7 @@ macro_rules! n_bezier {
 
             fn interp_unbounded(&self, t: F) -> F {
                 let t1 = F::from_f32(1.0).unwrap() - t;
-                const COUNT: i32 = count!($($field),+) - 1;
+                const COUNT: i32 = $order;
                 let mut factor = COUNT + 1;
 
                 $(
@@ -215,7 +212,7 @@ macro_rules! n_bezier {
 
             fn slope_unbounded(&self, t: F) -> F {
                 let t1 = F::from_f32(1.0).unwrap() - t;
-                const COUNT: i32 = count!($($dleft),+) - 1;
+                const COUNT: i32 = $order - 1;
                 let mut factor = COUNT + 1;
 
                 $(
@@ -251,15 +248,16 @@ macro_rules! n_bezier {
         impl<F> $crate::OrderStatic for $name<F> 
                 where F: $crate::traitdefs::Float 
         {
+            #[inline]
             fn order_static() -> usize {
-                count!($($field),+)-1
+                $order
             }
         }
 
-        impl<F> ::std::convert::From<[F; count!($($field),+)]> for $name<F> 
+        impl<F> ::std::convert::From<[F; $order + 1]> for $name<F> 
                 where F: $crate::traitdefs::Float 
         {
-            fn from(array: [F; count!($($field),+)]) -> $name<F> {
+            fn from(array: [F; $order + 1]) -> $name<F> {
                 use $crate::BezCurve;
                 $name::from_slice(&array[..]).unwrap()
             }
@@ -271,7 +269,7 @@ macro_rules! n_bezier {
             fn as_ref(&self) -> &[F] {
                 use std::slice;
                 unsafe {
-                    slice::from_raw_parts(self as *const $name<F> as *const F, count!($($field),+))
+                    slice::from_raw_parts(self as *const $name<F> as *const F, $order + 1)
                 }
             }
         }
@@ -282,7 +280,7 @@ macro_rules! n_bezier {
             fn as_mut(&mut self) -> &mut [F] {
                 use std::slice;
                 unsafe {
-                    slice::from_raw_parts_mut(self as *mut $name<F> as *mut F, count!($($field),+))
+                    slice::from_raw_parts_mut(self as *mut $name<F> as *mut F, $order + 1)
                 }
             }
         }
@@ -291,7 +289,7 @@ macro_rules! n_bezier {
 
 
 macro_rules! bez_composite {
-    ($name:ident<$poly:ident> {
+    ($doc:expr, $order:expr; $name:ident<$poly:ident> {
         $($field:ident: $($n_field:ident),+;)+
     } -> <$point:ident; $vector:ident> {
         $($dim:ident = $($dfield:ident),+;)+
@@ -300,6 +298,7 @@ macro_rules! bez_composite {
     } chained $chain:ident) => 
     {
         #[derive(Debug, Clone, Copy)]
+        #[doc=$doc]
         pub struct $name<F: $crate::traitdefs::Float> {
             $(pub $field: $point<F>),+
         }
@@ -373,10 +372,10 @@ macro_rules! bez_composite {
             }
         }
 
-        impl<F> ::std::convert::From<[$point<F>; count!($($field),+)]> for $name<F>
+        impl<F> ::std::convert::From<[$point<F>; $order + 1]> for $name<F>
                 where F: $crate::traitdefs::Float 
         {
-            fn from(array: [$point<F>; count!($($field),+)]) -> $name<F> {
+            fn from(array: [$point<F>; $order + 1]) -> $name<F> {
                 use $crate::BezCurve;
                 $name::from_slice(&array[..]).unwrap()
             }
@@ -388,7 +387,7 @@ macro_rules! bez_composite {
             fn as_ref(&self) -> &[$point<F>] {
                 use std::slice;
                 unsafe {
-                    slice::from_raw_parts(self as *const $name<F> as *const $point<F>, count!($($field),+))
+                    slice::from_raw_parts(self as *const $name<F> as *const $point<F>, $order + 1)
                 }
             }
         }
@@ -399,7 +398,7 @@ macro_rules! bez_composite {
             fn as_mut(&mut self) -> &mut [$point<F>] {
                 use std::slice;
                 unsafe {
-                    slice::from_raw_parts_mut(self as *mut $name<F> as *mut $point<F>, count!($($field),+))
+                    slice::from_raw_parts_mut(self as *mut $name<F> as *mut $point<F>, $order + 1)
                 }
             }
         }

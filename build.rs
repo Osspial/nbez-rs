@@ -18,7 +18,7 @@ fn main() {
 
     // Create points and vectors
     for dim in MIN_DIMS..(MAX_DIMS + 1) {
-        writeln!(file, "n_pointvector!{{{0}; Point{0}d, Vector{0}d {{", dim).unwrap();
+        writeln!(file, "n_pointvector!{{\"{0}-dimensional point\", \"{0}-dimensional vector\", {0}; Point{0}d, Vector{0}d {{", dim).unwrap();
 
         for (i, dt) in dim_tags[0..dim].iter().enumerate() {
             write!(file, "    {}", dt).unwrap();
@@ -35,7 +35,7 @@ fn main() {
 
     // Create one-dimensional bezier polynomials
     for order in MIN_ORDER..(MAX_ORDER + 1) {
-        writeln!(file, "n_bezier!{{BezPoly{}o {{", order).unwrap();
+        writeln!(file, "n_bezier!{{\"Order {0} bezier polynomial\", {0}; BezPoly{0}o {{", order).unwrap();
         for o in 0..(order + 1) {
             write!(file, "    {}: {}", get_param_name(o, order), combination(order, o)).unwrap();
 
@@ -82,7 +82,7 @@ fn main() {
     // Create composite curves
     for dim in MIN_DIMS..(MAX_DIMS + 1) {
         for order in MIN_ORDER..(MAX_ORDER + 1) {        
-            writeln!(file, "bez_composite!{{Bez{0}o{1}d<BezPoly{0}o> {{", order, dim).unwrap();
+            writeln!(file, "bez_composite!{{\"{1}-dimensional order {0} bezier curve\", {0}; Bez{0}o{1}d<BezPoly{0}o> {{", order, dim).unwrap();
 
             for o in 0..(order + 1) {
                 let param_name = get_param_name(o, order);
