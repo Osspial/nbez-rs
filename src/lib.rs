@@ -224,3 +224,108 @@ impl<F, B, C> AsMut<C> for BezChain<F, B, C>
         &mut self.points
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_poly_eq<B1, B2>(nbez_poly: &B1, bez_poly: &B2)
+            where B1: BezCurve<f64, Point = f64>,
+                  B2: BezCurve<f64, Point = f64> {
+        let mut t = 0.0;
+        while t <= 1.0 {
+            // Assert that values are equal within a tolerance.
+            assert!((nbez_poly.interp(t).unwrap() - bez_poly.interp(t).unwrap()).abs() <= 0.000000001);
+            t += 1.0/30.0;
+        }
+    }
+
+    fn test_poly_slope_eq<B1, B2>(nbez_poly: &B1, bez_poly: &B2) 
+            where B1: BezCurve<f64, Vector = f64>, 
+                  B2: BezCurve<f64, Vector = f64> {
+        let mut t = 0.0;
+        while t <= 1.0 {
+            // Ditto.
+            assert!((nbez_poly.slope(t).unwrap() - bez_poly.slope(t).unwrap()).abs() <= 0.000000001);
+            t += 1.0/30.0;
+        }
+    }
+
+    #[test]
+    fn bez_poly_equiviliance() {
+        let mut nbez_poly = NBezPoly::from_container(Vec::with_capacity(7));
+        nbez_poly.as_mut().push(0.0);
+        nbez_poly.as_mut().push(1.0);
+
+        let bezpoly1o = BezPoly1o::new(0.0, 1.0);
+        test_poly_eq(&nbez_poly, &bezpoly1o);
+        test_poly_slope_eq(&nbez_poly, &bezpoly1o);
+
+        nbez_poly.as_mut().push(-1.0);
+        let bezpoly2o = BezPoly2o::new(0.0, 1.0, -1.0);
+        test_poly_eq(&nbez_poly, &bezpoly2o);
+        test_poly_slope_eq(&nbez_poly, &bezpoly2o);
+        
+        nbez_poly.as_mut().push(2.0);
+        let bezpoly3o = BezPoly3o::new(0.0, 1.0, -1.0, 2.0);
+        test_poly_eq(&nbez_poly, &bezpoly3o);
+        test_poly_slope_eq(&nbez_poly, &bezpoly3o);
+        
+        nbez_poly.as_mut().push(-2.0);
+        let bezpoly4o = BezPoly4o::new(0.0, 1.0, -1.0, 2.0, -2.0);
+        test_poly_eq(&nbez_poly, &bezpoly4o);
+        test_poly_slope_eq(&nbez_poly, &bezpoly4o);
+        
+        nbez_poly.as_mut().push(3.0);
+        let bezpoly5o = BezPoly5o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0);
+        test_poly_eq(&nbez_poly, &bezpoly5o);
+        test_poly_slope_eq(&nbez_poly, &bezpoly5o);
+        
+        nbez_poly.as_mut().push(-3.0);
+        let bezpoly6o = BezPoly6o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0, -3.0);
+        test_poly_eq(&nbez_poly, &bezpoly6o);
+        test_poly_slope_eq(&nbez_poly, &bezpoly6o);
+    }
+
+    fn test_bez_elevation<B>(curve: &B)
+            where B: BezCurve<f64, Point = f64, Vector = f64> {
+        
+        let elevated = curve.elevate();
+        test_poly_eq(curve, &elevated);
+        test_poly_slope_eq(curve, &elevated);
+    }
+
+    #[test]
+    fn bez_elevation() {
+        test_bez_elevation(&BezPoly1o::new(0.0, 1.0));
+        test_bez_elevation(&BezPoly2o::new(0.0, 1.0, -1.0));
+        test_bez_elevation(&BezPoly3o::new(0.0, 1.0, -1.0, 2.0));
+        test_bez_elevation(&BezPoly4o::new(0.0, 1.0, -1.0, 2.0, -2.0));
+        test_bez_elevation(&BezPoly5o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0));
+        test_bez_elevation(&BezPoly6o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0, -3.0));
+    }
+
+    #[test]
+    fn nbez_elevation() {
+        let mut nbez_poly = NBezPoly::from_container(Vec::with_capacity(7));
+        nbez_poly.as_mut().push(0.0);
+        nbez_poly.as_mut().push(1.0);
+
+        test_bez_elevation(&nbez_poly);
+
+        nbez_poly.as_mut().push(-1.0);
+        test_bez_elevation(&nbez_poly);
+        
+        nbez_poly.as_mut().push(2.0);
+        test_bez_elevation(&nbez_poly);
+        
+        nbez_poly.as_mut().push(-2.0);
+        test_bez_elevation(&nbez_poly);
+        
+        nbez_poly.as_mut().push(3.0);
+        test_bez_elevation(&nbez_poly);
+        
+        nbez_poly.as_mut().push(-3.0);
+        test_bez_elevation(&nbez_poly);
+    }
+}
