@@ -175,8 +175,7 @@ macro_rules! n_bezier {
         }
 
         impl<F> $crate::BezCurve<F> for $name<F>
-                where F: $crate::traitdefs::Float
-        {
+                where F: $crate::traitdefs::Float {
             type Point = F;
             type Vector = F;
             type Elevated = $elevated<$($est),+>;
@@ -246,8 +245,7 @@ macro_rules! n_bezier {
         }
 
         impl<F> $crate::OrderStatic for $name<F> 
-                where F: $crate::traitdefs::Float 
-        {
+                where F: $crate::traitdefs::Float {
             #[inline]
             fn order_static() -> usize {
                 $order
@@ -255,8 +253,7 @@ macro_rules! n_bezier {
         }
 
         impl<F> ::std::convert::From<[F; $order + 1]> for $name<F> 
-                where F: $crate::traitdefs::Float 
-        {
+                where F: $crate::traitdefs::Float {
             fn from(array: [F; $order + 1]) -> $name<F> {
                 use $crate::BezCurve;
                 $name::from_slice(&array[..]).unwrap()
@@ -264,8 +261,7 @@ macro_rules! n_bezier {
         }
 
         impl<F> ::std::convert::AsRef<[F]> for $name<F> 
-                where F: $crate::traitdefs::Float 
-        {
+                where F: $crate::traitdefs::Float {
             fn as_ref(&self) -> &[F] {
                 use std::slice;
                 unsafe {
@@ -275,8 +271,7 @@ macro_rules! n_bezier {
         }
 
         impl<F> ::std::convert::AsMut<[F]> for $name<F> 
-                where F: $crate::traitdefs::Float 
-        {
+                where F: $crate::traitdefs::Float {
             fn as_mut(&mut self) -> &mut [F] {
                 use std::slice;
                 unsafe {
@@ -318,8 +313,7 @@ macro_rules! bez_composite {
         }
 
         impl<F> $crate::BezCurve<F> for $name<F>
-                where F: $crate::traitdefs::Float 
-        {
+                where F: $crate::traitdefs::Float {
             type Point = $point<F>;
             type Vector = $vector<F>;
             type Elevated = $elevated<$($est),+>;
@@ -363,8 +357,7 @@ macro_rules! bez_composite {
         }
 
         impl<F> $crate::OrderStatic for $name<F>
-                where F: $crate::traitdefs::Float
-        {
+                where F: $crate::traitdefs::Float {
             #[inline]
             fn order_static() -> usize {
                 use $crate::OrderStatic;
@@ -373,8 +366,7 @@ macro_rules! bez_composite {
         }
 
         impl<F> ::std::convert::From<[$point<F>; $order + 1]> for $name<F>
-                where F: $crate::traitdefs::Float 
-        {
+                where F: $crate::traitdefs::Float {
             fn from(array: [$point<F>; $order + 1]) -> $name<F> {
                 use $crate::BezCurve;
                 $name::from_slice(&array[..]).unwrap()
@@ -382,8 +374,7 @@ macro_rules! bez_composite {
         }
 
         impl<F> ::std::convert::AsRef<[$point<F>]> for $name<F>
-                where F: $crate::traitdefs::Float 
-        {
+                where F: $crate::traitdefs::Float {
             fn as_ref(&self) -> &[$point<F>] {
                 use std::slice;
                 unsafe {
@@ -393,8 +384,7 @@ macro_rules! bez_composite {
         }
 
         impl<F> ::std::convert::AsMut<[$point<F>]> for $name<F>
-                where F: $crate::traitdefs::Float 
-        {
+                where F: $crate::traitdefs::Float {
             fn as_mut(&mut self) -> &mut [$point<F>] {
                 use std::slice;
                 unsafe {

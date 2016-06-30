@@ -89,8 +89,7 @@ impl<'a, F, B> ExactSizeIterator for BezIter<'a, F, B>
 
 /// Bezier curve trait
 pub trait BezCurve<F: Float> 
-        where Self: Sized
-{
+        where Self: Sized {
     type Point;
     type Vector;
     type Elevated: BezCurve<F, Point = Self::Point, Vector = Self::Vector>;
@@ -136,8 +135,7 @@ pub trait OrderStatic {
 pub struct BezChain<F, B, C>
         where F: Float,
               B: BezCurve<F> + OrderStatic,
-              C: AsRef<[B::Point]>
-{
+              C: AsRef<[B::Point]> {
     points: C,
     phantom: PhantomData<(F, B)>
 }
@@ -145,8 +143,7 @@ pub struct BezChain<F, B, C>
 impl<F, B, C> BezChain<F, B, C>
         where F: Float,
               B: BezCurve<F> + OrderStatic,
-              C: AsRef<[B::Point]>
-{
+              C: AsRef<[B::Point]> {
     /// Create a new BezChain by wrapping around a container.
     #[inline]
     pub fn from_container(container: C) -> BezChain<F, B, C> {
@@ -197,8 +194,7 @@ impl<F, B, C> BezChain<F, B, C>
 impl<F, B, C> OrderStatic for BezChain<F, B, C>
         where F: Float,
               B: BezCurve<F> + OrderStatic,
-              C: AsRef<[B::Point]>
-{
+              C: AsRef<[B::Point]> {
     #[inline]
     fn order_static() -> usize {
         B::order_static()
@@ -208,8 +204,7 @@ impl<F, B, C> OrderStatic for BezChain<F, B, C>
 impl<F, B, C> AsRef<C> for BezChain<F, B, C>
         where F: Float,
               B: BezCurve<F> + OrderStatic,
-              C: AsRef<[B::Point]>
-{
+              C: AsRef<[B::Point]> {
     fn as_ref(&self) -> &C {
         &self.points
     }
@@ -218,8 +213,7 @@ impl<F, B, C> AsRef<C> for BezChain<F, B, C>
 impl<F, B, C> AsMut<C> for BezChain<F, B, C>
         where F: Float,
               B: BezCurve<F> + OrderStatic,
-              C: AsRef<[B::Point]>
-{
+              C: AsRef<[B::Point]> {
     fn as_mut(&mut self) -> &mut C {
         &mut self.points
     }
@@ -228,8 +222,7 @@ impl<F, B, C> AsMut<C> for BezChain<F, B, C>
 impl<F, B, C> Debug for BezChain<F, B, C>
         where F: Float,
               B: BezCurve<F> + OrderStatic,
-              C: AsRef<[B::Point]> + Debug
-{
+              C: AsRef<[B::Point]> + Debug {
     fn fmt(&self, f: &mut Formatter) -> Result<(), ::std::fmt::Error> {
         f.debug_tuple("BezChain")
             .field(&self.points)

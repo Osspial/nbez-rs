@@ -238,8 +238,7 @@ impl<F, C> AsMut<C> for NBezPoly<F, C>
 
 impl<F, C> Debug for NBezPoly<F, C>
         where F: Float,
-              C: AsRef<[F]> + Debug
-{
+              C: AsRef<[F]> + Debug {
     fn fmt(&self, f: &mut Formatter) -> Result<(), ::std::fmt::Error> {
         f.debug_tuple("NBezPoly")
             .field(&self.points)
@@ -301,8 +300,7 @@ impl<P, V, F, C> BezCurve<F> for NBez<P, V, F, C>
         where F: Float,
               C: AsRef<[P]>,
               P: Point<F>,
-              V: Vector<F, P> 
-{
+              V: Vector<F, P> {
     type Point = P;
     type Vector = V;
     type Elevated = NBez<P, V, F, Vec<P>>;
@@ -403,8 +401,7 @@ impl<P, V, F, C> Debug for NBez<P, V, F, C>
         where F: Float,
               C: AsRef<[P]> + Debug,
               P: Point<F>,
-              V: Vector<F, P>
-{
+              V: Vector<F, P> {
     fn fmt(&self, f: &mut Formatter) -> Result<(), ::std::fmt::Error> {
         f.debug_tuple("NBez")
             .field(&self.points)
