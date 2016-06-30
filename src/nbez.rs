@@ -2,6 +2,8 @@ use traitdefs::{Float, Point, Vector};
 use std::convert::{AsRef, AsMut, From};
 use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
+use std::fmt::{Debug, Formatter};
+
 
 use super::BezCurve;
 
@@ -234,6 +236,18 @@ impl<F, C> AsMut<C> for NBezPoly<F, C>
     }
 }
 
+impl<F, C> Debug for NBezPoly<F, C>
+        where F: Float,
+              C: AsRef<[F]> + Debug
+{
+    fn fmt(&self, f: &mut Formatter) -> Result<(), ::std::fmt::Error> {
+        f.debug_tuple("NBezPoly")
+            .field(&self.points)
+            .finish()
+    }
+}
+
+
 #[derive(Clone)]
 pub struct NBez<P, V, F, C>
         where F: Float,
@@ -382,5 +396,18 @@ impl<P, V, F, C> AsMut<C> for NBez<P, V, F, C>
               V: Vector<F, P> {
     fn as_mut(&mut self) -> &mut C {
         &mut self.points
+    }
+}
+
+impl<P, V, F, C> Debug for NBez<P, V, F, C>
+        where F: Float,
+              C: AsRef<[P]> + Debug,
+              P: Point<F>,
+              V: Vector<F, P>
+{
+    fn fmt(&self, f: &mut Formatter) -> Result<(), ::std::fmt::Error> {
+        f.debug_tuple("NBez")
+            .field(&self.points)
+            .finish()
     }
 }

@@ -8,7 +8,7 @@ mod nbez;
 pub use nbez::*;
 
 use traitdefs::Float;
-use std::fmt::Debug;
+use std::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
 
 // There are macros in place to make it easier to create new bezier structs, as they can be created
@@ -224,6 +224,19 @@ impl<F, B, C> AsMut<C> for BezChain<F, B, C>
         &mut self.points
     }
 }
+
+impl<F, B, C> Debug for BezChain<F, B, C>
+        where F: Float,
+              B: BezCurve<F> + OrderStatic,
+              C: AsRef<[B::Point]> + Debug
+{
+    fn fmt(&self, f: &mut Formatter) -> Result<(), ::std::fmt::Error> {
+        f.debug_tuple("BezChain")
+            .field(&self.points)
+            .finish()
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
