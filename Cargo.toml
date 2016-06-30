@@ -11,7 +11,3 @@ num = "0.1"
 glutin = "0.5.0"
 gfx = "0.11.0"
 gfx_window_glutin = "0.11.0"
-
-[features]
-default = []
-n_dimensional_curve_chains = []

@@ -177,14 +177,14 @@ macro_rules! n_bezier {
             }
         }
 
-        impl<'a, F> $crate::BezCurve<'a, F> for $name<F>
+        impl<F> $crate::BezCurve<F> for $name<F>
                 where F: $crate::traitdefs::Float
         {
             type Point = F;
             type Vector = F;
             type Elevated = $elevated<$($est),+>;
 
-            fn from_slice(slice: &'a [F]) -> Option<$name<F>> {
+            fn from_slice(slice: &[F]) -> Option<$name<F>> {
                 use $crate::OrderStatic;
                 if slice.len() - 1 != $name::<F>::order_static() {
                     None
@@ -318,14 +318,14 @@ macro_rules! bez_composite {
             )+
         }
 
-        impl<'a, F> $crate::BezCurve<'a, F> for $name<F>
+        impl<F> $crate::BezCurve<F> for $name<F>
                 where F: $crate::traitdefs::Float 
         {
             type Point = $point<F>;
             type Vector = $vector<F>;
             type Elevated = $elevated<$($est),+>;
 
-            fn from_slice(slice: &'a [$point<F>]) -> Option<$name<F>> {
+            fn from_slice(slice: &[$point<F>]) -> Option<$name<F>> {
                 use $crate::OrderStatic;
                 if slice.len() - 1 != $name::<F>::order_static() {
                     None
@@ -401,82 +401,6 @@ macro_rules! bez_composite {
                 unsafe {
                     slice::from_raw_parts_mut(self as *mut $name<F> as *mut $point<F>, count!($($field),+))
                 }
-            }
-        }
-
-        #[derive(Clone, Copy)]
-        pub struct $chain<F, C>
-                where F: $crate::traitdefs::Float,
-                      C: AsRef<[$point<F>]>
-        {
-            points: C,
-            phantom: ::std::marker::PhantomData<F>
-        }
-
-        impl<'a, F, C> $crate::BezChain<'a, F, C> for $chain<F, C>
-                where F: $crate::traitdefs::Float,
-                      C: AsRef<[$point<F>]>
-        {
-            type Curve = $name<F>;
-            
-            fn from_container(container: C) -> $chain<F, C> {
-                $chain {
-                    points: container,
-                    phantom: ::std::marker::PhantomData
-                }
-            }
-
-            fn get(&self, index: usize) -> $name<F> {
-                use $crate::{BezCurve, OrderStatic};
-
-                let order = $name::<F>::order_static();
-                let curve_index = index * order;
-                $name::from_slice(&self.points.as_ref()[curve_index..curve_index + order + 1]).unwrap()
-            }
-
-            fn iter(&self) -> $crate::BezIter<'a, F, $name<F>> {
-                use $crate::OrderStatic;
-
-                $crate::BezIter {
-                    points: self.points.as_ref().as_ptr(),
-                    len: self.points.as_ref().len(),
-                    order: $name::<F>::order_static()
-                }
-            }
-
-            fn order(&self) -> usize {
-                $name::<F>::order_static()
-            }
-
-            fn unwrap(self) -> C {
-                self.points
-            }
-        }
-
-        impl<F, C> $crate::OrderStatic for $chain<F, C>
-                where F: $crate::traitdefs::Float,
-                      C: AsRef<[$point<F>]>
-        {
-            fn order_static() -> usize {
-                $name::<F>::order_static()
-            }
-        }
-
-        impl<F, C> AsRef<C> for $chain<F, C> 
-                where F: Float,
-                      C: AsRef<[$point<F>]>
-        {
-            fn as_ref(&self) -> &C {
-                &self.points
-            }
-        }
-
-        impl<F, C> AsMut<C> for $chain<F, C> 
-                where F: Float,
-                      C: AsRef<[$point<F>]>
-        {
-            fn as_mut(&mut self) -> &mut C {
-                &mut self.points
             }
         }
     };

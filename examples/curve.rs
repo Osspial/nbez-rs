@@ -5,7 +5,7 @@ extern crate gfx;
 extern crate gfx_window_glutin;
 extern crate glutin;
 
-use bev::{BezCurve, BezChain, BezChain3o2d, Point2d};
+use bev::{BezCurve, BezChain, Bez3o2d, Point2d};
 
 use gfx::traits::FactoryExt;
 use gfx::{Factory, Device, Primitive, BufferRole, Bind, Slice, IndexBuffer};
@@ -46,7 +46,7 @@ fn main() {
         pipe::new()
     ).unwrap();
 
-    let mut curve_chain = BezChain3o2d::from_container(vec![
+    let mut curve_chain: BezChain<_, Bez3o2d<_>, _> = BezChain::from_container(vec![
         Point2d::new(-0.5, -0.5),
         Point2d::new( 0.0, -0.5),
         Point2d::new(-0.5,  0.0),
