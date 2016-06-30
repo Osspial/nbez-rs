@@ -148,10 +148,17 @@ impl<F, B, C> BezChain<F, B, C>
         }
     }
 
-    pub fn get(&self, index: usize) -> B {
+    pub fn get(&self, index: usize) -> Option<B> {
+        let len = self.points.as_ref().len();
         let order = B::order_static();
         let curve_index = index * order;
-        B::from_slice(&self.points.as_ref()[curve_index..curve_index + order + 1]).unwrap()
+        let curve_end_index = index * order + order + 1;
+
+        if curve_end_index > len - (len - 1) % order {
+            None
+        } else {
+            Some(B::from_slice(&self.points.as_ref()[curve_index..curve_end_index]).unwrap())
+        }
     }
 
     pub fn iter(&self) -> BezIter<F, B> {
