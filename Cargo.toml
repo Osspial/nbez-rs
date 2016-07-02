@@ -1,5 +1,5 @@
 [package]
-name = "bev"
+name = "nbez"
 version = "0.1.0"
 authors = ["Osspial <osspial@gmail.com>"]
 build = "build.rs"
