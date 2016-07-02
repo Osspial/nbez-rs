@@ -34,7 +34,7 @@ fn main() {
     let builder = glutin::WindowBuilder::new()
         .with_dimensions(win_x, win_y)
         .with_multisampling(16)
-        .with_title("Hello Bézier".into());
+        .with_title("Hello Bezier".into());
     let (window, mut device, mut factory, main_color, mut main_depth) =
         gfx_window_glutin::init::<ColorFormat, DepthFormat>(builder);
     let mut encoder: gfx::Encoder<_, _> = factory.create_command_buffer().into();
