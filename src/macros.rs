@@ -153,13 +153,11 @@ macro_rules! check_t_bounds {
 macro_rules! n_bezier {
     ($doc:expr, $order:expr; $name:ident {
         $($field:ident: $weight:expr),+
-    } derived {
-        $($dleft:ident - $dright:ident: $dweight:expr),+
-    } elevated $elevated:ident<$($est:ty),+> {
-        $estart:ident;
-        $($eleft:ident + $eright:ident),+;
-        $eend:ident;
-    }) => {
+    } {
+        $start:ident, $next:ident;
+        $($left:ident, $right:ident: $dweight:expr),+;
+        $penu:ident, $end:ident;
+    } elevated $elevated:ident<$($est:ty),+>) => {
         #[derive(Debug, Clone, Copy)]
         #[doc=$doc]
         pub struct $name<F> where F: $crate::traitdefs::Float {
@@ -216,26 +214,26 @@ macro_rules! n_bezier {
 
                 $(
                     factor -= 1;
-                    let $dleft =
+                    let $right =
                         t1.powi(factor) *
                         t.powi(COUNT-factor) *
-                        (self.$dleft - self.$dright) *
+                        (self.$right - self.$left) *
                         F::from_i32($dweight * (COUNT + 1)).unwrap();
                 )+
-                $($dleft +)+ F::from_f32(0.0).unwrap()
+                $($right +)+ F::from_f32(0.0).unwrap()
             }
 
             fn elevate(&self) -> $elevated<$($est),+> {
                 let mut factor = 0.0;
                 let order = F::from_usize(self.order() + 1).unwrap();
-                $elevated::from([self.$estart, 
+                $elevated::from([self.$start, 
                     $({
                         factor += 1.0;
                         let factor = F::from_f32(factor).unwrap();
-                        (self.$eleft * factor +
-                        self.$eright * (order - factor)) / order
+                        (self.$left * factor +
+                        self.$right * (order - factor)) / order
                     },)+
-                    self.$eend])
+                    self.$end])
             }
 
             fn order(&self) -> usize {

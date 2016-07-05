@@ -51,32 +51,24 @@ fn main() {
         // Order of the derivative of the polynomial
         let dorder = order - 1;
         
-        writeln!(file, "}} derived {{").unwrap();
+        writeln!(file, "}} {{").unwrap();
+        writeln!(file, "    start, {};", get_param_name(1, order)).unwrap();
         for o in 0..order {
-            write!(file, "    {} - {}: {}", get_param_name(o+1, order), get_param_name(o, order), combination(dorder, o)).unwrap();
+            write!(file, "    {}, {}: {}", get_param_name(o, order), get_param_name(o + 1, order), combination(dorder, o)).unwrap();
             
             if o != dorder {
                 writeln!(file, ",")
             } else {
-                writeln!(file, "")
-            }.unwrap();
-        }
-        if order == MAX_ORDER {
-            writeln!(file, "}} elevated NBezPoly<F, [F; {}]> {{", order + 2).unwrap();
-        } else {
-            writeln!(file, "}} elevated BezPoly{}o<F> {{", order + 1).unwrap();
-        }
-
-        writeln!(file, "    start;").unwrap();
-        for o in 0..order {
-            write!(file, "    {} + {}", get_param_name(o, order), get_param_name(o+1, order)).unwrap();
-            if o == order - 1 {
                 writeln!(file, ";")
-            } else {
-                writeln!(file, ",")
             }.unwrap();
         }
-        writeln!(file, "    end;\n}}}}").unwrap();
+        writeln!(file, "    {}, end;", get_param_name(order - 1, order)).unwrap();
+
+        if order == MAX_ORDER {
+            writeln!(file, "}} elevated NBezPoly<F, [F; {}]> }}", order + 2).unwrap();
+        } else {
+            writeln!(file, "}} elevated BezPoly{}o<F> }}", order + 1).unwrap();
+        }
     }
 
     // Create composite curves
