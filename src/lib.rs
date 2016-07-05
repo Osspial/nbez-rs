@@ -119,6 +119,10 @@ pub trait BezCurve<F: Float>
     /// Elevate the curve order, getting a curve that is one order higher but gives the same results
     /// upon interpolation
     fn elevate(&self) -> Self::Elevated;
+
+    /// Split the curve at the given `t`, bounded on `0.0` to `1.0` inclusive. Returns `None` if `t` is
+    /// not within bounds.
+    fn split(&self, t: F) -> Option<(Self, Self)>;
     
     /// Gets the order of the curve
     fn order(&self) -> usize;

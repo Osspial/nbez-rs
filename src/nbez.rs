@@ -215,6 +215,10 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
         NBezPoly::from_container(el_points)
     }
 
+    fn split(&self, _: F) -> Option<(NBezPoly<F, C>, NBezPoly<F, C>)> {
+        unimplemented!()
+    }
+
     fn order(&self) -> usize {
         self.points.as_ref().len()-1
     }
@@ -370,6 +374,10 @@ impl<P, V, F, C> BezCurve<F> for NBez<P, V, F, C>
         }
         el_points.push(points[points.len()-1].clone());
         NBez::from_container(el_points)
+    }
+
+    fn split(&self, _: F) -> Option<(NBez<P, V, F, C>, NBez<P, V, F, C>)> {
+        unimplemented!()
     }
 
     fn order(&self) -> usize {

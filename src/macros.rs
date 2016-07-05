@@ -236,6 +236,10 @@ macro_rules! n_bezier {
                     self.$end])
             }
 
+            fn split(&self, _: F) -> Option<($name<F>, $name<F>)> {
+                unimplemented!()
+            }
+
             fn order(&self) -> usize {
                 use $crate::OrderStatic;
                 $name::<F>::order_static()
@@ -346,6 +350,10 @@ macro_rules! bez_composite {
                 
                 $(let $dim = self.$dim().elevate();)+
                 $elevated::from([$($point::new($($edim.as_ref()[$eindex]),+)),+])
+            }
+
+            fn split(&self, _: F) -> Option<($name<F>, $name<F>)> {
+                unimplemented!()
             }
 
             fn order(&self) -> usize {
