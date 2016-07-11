@@ -334,20 +334,14 @@ macro_rules! bez_composite {
             }
 
             fn interp_unbounded(&self, t: F) -> $point<F> {
-                use $crate::BezCurve;
-
                 $point::new($(self.$dim().interp_unbounded(t)),+)
             }
 
             fn slope_unbounded(&self, t: F) -> $vector<F> {
-                use $crate::BezCurve;
-
                 $vector::new($(self.$dim().slope_unbounded(t)),+)
             }
 
             fn elevate(&self) -> $elevated<$($est),+> {
-                use $crate::BezCurve;
-                
                 $(let $dim = self.$dim().elevate();)+
                 $elevated::from([$($point::new($($edim.as_ref()[$eindex]),+)),+])
             }
@@ -366,7 +360,6 @@ macro_rules! bez_composite {
                 where F: $crate::traitdefs::Float {
             #[inline]
             fn order_static() -> usize {
-                use $crate::OrderStatic;
                 $poly::<F>::order_static()
             }
         }
