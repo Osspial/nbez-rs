@@ -46,14 +46,23 @@ fn main() {
         pipe::new()
     ).unwrap();
 
+    let curve = Bez3o2d::new(
+        -0.5, -0.5,
+         0.5, -0.5,
+        -0.5,  0.5,
+         0.5,  0.5,
+    );
+
+    let (left, right) = curve.split(0.3).unwrap();
+
     let mut curve_chain: BezChain<_, Bez3o2d<_>, _> = BezChain::from_container(vec![
-        Point2d::new(-0.5, -0.5),
-        Point2d::new( 0.0, -0.5),
-        Point2d::new(-0.5,  0.0),
-        Point2d::new( 0.0,  0.0),
-        Point2d::new( 0.5,  0.0),
-        Point2d::new( 0.0,  0.5),
-        Point2d::new( 0.5,  0.5)
+        left.start,
+        left.ctrl0,
+        left.ctrl1,
+        right.start,
+        right.ctrl0,
+        right.ctrl1,
+        right.end
     ]);
 
     let radius = 0.02;

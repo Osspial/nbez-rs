@@ -35,7 +35,7 @@ fn main() {
 
     // Create one-dimensional bezier polynomials
     for order in MIN_ORDER..(MAX_ORDER + 1) {
-        writeln!(file, "n_bezier!{{\"Order {0} bezier polynomial\", {0}; BezPoly{0}o {{", order).unwrap();
+        writeln!(file, "n_bezier!{{\"Order {0} bezier polynomial\", {0}, {1}; BezPoly{0}o {{", order, sum(order)).unwrap();
         for o in 0..(order + 1) {
             write!(file, "    {}: {}", get_param_name(o, order), combination(order, o)).unwrap();
 
@@ -52,7 +52,7 @@ fn main() {
         let dorder = order - 1;
         
         writeln!(file, "}} {{").unwrap();
-        writeln!(file, "    start, {};", get_param_name(1, order)).unwrap();
+        writeln!(file, "    {};", get_param_name(0, order)).unwrap();
         for o in 0..order {
             write!(file, "    {}, {}: {}", get_param_name(o, order), get_param_name(o + 1, order), combination(dorder, o)).unwrap();
             
@@ -62,7 +62,7 @@ fn main() {
                 writeln!(file, ";")
             }.unwrap();
         }
-        writeln!(file, "    {}, end;", get_param_name(order - 1, order)).unwrap();
+        writeln!(file, "    {};", get_param_name(order, order)).unwrap();
 
         if order == MAX_ORDER {
             writeln!(file, "}} elevated NBezPoly<F, [F; {}]> }}", order + 2).unwrap();
@@ -145,4 +145,16 @@ fn factorial(n: usize) -> usize {
         0 => 1,
         _ => n * factorial(n-1)
     }
+}
+
+/// Get the sum of all numbers on the interval [0, n]
+fn sum(mut n: usize) -> usize {
+    let mut acc = 0;
+
+    while n > 0 {
+        acc += n;
+        n -= 1;
+    }
+    
+    acc
 }

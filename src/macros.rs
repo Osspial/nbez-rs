@@ -149,14 +149,33 @@ macro_rules! check_t_bounds {
     }}
 }
 
-// Polynomial Macros
+
+/// Create an n-order bezier polynomial.
+///
+/// `$doc`: the documentation for the struct
+///
+/// `$order`: the order of the curve
+///
+/// `$sum`: the sum of all numbers between 1 and $order
+///
+/// `$name`: the name of the struct
+///
+/// `$field`: the name of the field for the various points on the polynomial
+///
+/// `$weight`: the weight of each of the fields
+///
+/// `$start`: the first field
+///
+/// `$left`, `$right`: a pair of adjacent fields. Used for slope and curve elevation
+///
+/// `$end`: the last field
 macro_rules! n_bezier {
-    ($doc:expr, $order:expr; $name:ident {
+    ($doc:expr, $order:expr, $sum:expr; $name:ident {
         $($field:ident: $weight:expr),+
     } {
-        $start:ident, $next:ident;
+        $start:ident;
         $($left:ident, $right:ident: $dweight:expr),+;
-        $penu:ident, $end:ident;
+        $end:ident;
     } elevated $elevated:ident<$($est:ty),+>) => {
         #[derive(Debug, Clone, Copy)]
         #[doc=$doc]
@@ -236,8 +255,86 @@ macro_rules! n_bezier {
                     self.$end])
             }
 
-            fn split(&self, _: F) -> Option<($name<F>, $name<F>)> {
-                unimplemented!()
+            fn split(&self, t: F) -> Option<($name<F>, $name<F>)> {
+                use $crate::lerp;
+
+
+                if $order == 1 {
+                    let interp = lerp(self.$start, self.$end, t);
+                    Some((
+                        $name::from_slice([self.$start, interp].as_ref()).unwrap(),
+                        $name::from_slice([interp, self.$end].as_ref()).unwrap()
+                    ))
+                } else {
+                    // `self`'s points as a slice
+                    let pslice = self.as_ref();
+
+                    const LERP_LEN: usize = $sum;
+                    let mut lerps = [F::from_f32(0.0).unwrap(); LERP_LEN];
+
+                    // Populate `lerps` with linear interpolations of points and other elements of lerps.
+                    //
+                    // What that means is that the first few indices will be filled with direct interpolations of
+                    // points in the curve, and subsequent indices will interpolate between those points, and so on.
+                    // For example, with the fourth-order polynomial containing these points:
+                    //
+                    // [0.0, 1.0, 0.5, 1.0, 0.0]
+                    // 
+                    // The first four indicies of `lerps` will contain interpolations between those points, like so
+                    // (if splitting the curve at t = 0.5):
+                    //
+                    // 0.0 & 1.0    1.0 & 0.5    0.5 & 1.0    1.0 & 0.0
+                    // [  0.5,         0.75,        0.75,        0.5    ...
+                    //
+                    // The next three indicies will be interpolations between *those* points, like so:
+                    //
+                    //     0.5 & 0.75    0.75 & 0.75    0.75 & 0.5
+                    // ...    0.625,         0.75,          0.625  ...
+                    // 
+                    // The next two interpolate between the above three points, and the last point interpolates between
+                    // those two.
+                    let mut offset = $order;
+                    let mut offset_threshold = $order * 2 - 1;
+                    for i in 0..LERP_LEN {
+                        if i < $order {
+                            lerps[i] = lerp(pslice[i], pslice[i+1], t);
+                        } else {
+                            if i >= offset_threshold {
+                                offset -= 1;
+                                offset_threshold += offset - 1;
+                            }
+                            lerps[i] = lerp(lerps[i - offset], lerps[i - offset + 1], t);
+                        }
+                    }
+
+                    // The length of the `points` array
+                    const POINTS_LEN: usize = $order * 2 + 1;
+
+                    // An array containing the control points that compose the split curves, with one point of overlap
+                    // where the curves meet.
+                    let mut points = [F::from_f32(0.0).unwrap(); POINTS_LEN];
+                    points[0] = self.$start;
+                    points[$order] = lerps[LERP_LEN - 1];
+                    points[POINTS_LEN - 1] = self.$end;
+
+
+                    // The index in `lerps` that we're going to be accessing for `points`
+                    let mut lerp_index = 0;
+
+                    // Move the lerped points from `lerp` to `points`
+                    for i in 1..$order {
+                        points[i] = lerps[lerp_index];
+                        points[POINTS_LEN - 1 - i] = lerps[lerp_index + $order - i];
+                        
+                        lerp_index += $order - i + 1;
+                    }
+
+
+                    Some((
+                        $name::from_slice(&points[..$order + 1]).expect("left poly fail"),
+                        $name::from_slice(&points[$order..]).expect("right poly fail")
+                    ))
+                }
             }
 
             fn order(&self) -> usize {
@@ -346,8 +443,26 @@ macro_rules! bez_composite {
                 $elevated::from([$($point::new($($edim.as_ref()[$eindex]),+)),+])
             }
 
-            fn split(&self, _: F) -> Option<($name<F>, $name<F>)> {
-                unimplemented!()
+            fn split(&self, t: F) -> Option<($name<F>, $name<F>)> {
+                use std::mem;
+
+                check_t_bounds!(t);
+                $(let $dim = self.$dim().split(t).unwrap();)+
+
+                // $(println!("{} = {:#?}", stringify!($dim), $dim);)+
+
+                let mut left: [$point<F>; $order + 1] = unsafe{ mem::zeroed() };
+                let mut right = left.clone();
+
+                for i in 0..$order + 1{
+                    left[i] = $point::new($($dim.0.as_ref()[i]),+);
+                    right[i] = $point::new($($dim.1.as_ref()[i]),+);
+                }
+
+                Some((
+                    $name::from(left),
+                    $name::from(right)
+                ))
             }
 
             fn order(&self) -> usize {

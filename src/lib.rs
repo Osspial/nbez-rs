@@ -11,6 +11,12 @@ use traitdefs::Float;
 use std::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
 
+#[inline] 
+fn lerp<F: Float>(a: F, b: F, factor: F) -> F { 
+    let fact1 = F::from_f32(1.0).unwrap() - factor; 
+    a * fact1 + b * factor 
+}
+
 // There are macros in place to make it easier to create new bezier structs, as they can be created
 // with a very consistent pattern. However, those macros are also written in a very consistent pattern
 // which unfortunately is significantly harder, if not impossible, to create with a traditional

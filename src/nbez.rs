@@ -5,13 +5,7 @@ use std::marker::PhantomData;
 use std::fmt::{Debug, Formatter};
 
 
-use super::BezCurve;
-
-#[inline]
-fn lerp<F: Float>(a: F, b: F, factor: F) -> F {
-    let fact1 = F::from_f32(1.0).unwrap() - factor;
-    a * factor + b * fact1
-}
+use super::{BezCurve, lerp};
 
 /// A struct that contains range information for slicing, used for slicing into the global factor
 /// vector. The reason this is used instead of stdlib's `Range` struct is that `Range` does not
@@ -206,7 +200,7 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
 
         let mut prev_p = points[0];
         for (i, p) in points.iter().map(|p| *p).enumerate().skip(1) {
-            el_points.push(lerp(prev_p, p, F::from_usize(i).unwrap()/order_f));
+            el_points.push(lerp(p, prev_p, F::from_usize(i).unwrap()/order_f));
 
             prev_p = p;
         }
@@ -368,7 +362,7 @@ impl<P, V, F, C> BezCurve<F> for NBez<P, V, F, C>
             // Iterate over each dimension of the current (c) and previous (r) point and interpolate
             // between them
             for (d, (c, r)) in p.as_ref().iter().zip(prev_p.as_ref().iter()).map(|(c, r)| (*c, *r)).enumerate() {
-                el_points[i].as_mut()[d] = lerp(r, c, F::from_usize(i).unwrap()/order);
+                el_points[i].as_mut()[d] = lerp(c, r, F::from_usize(i).unwrap()/order);
             }
             prev_p = p.clone();
         }
