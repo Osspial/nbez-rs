@@ -389,7 +389,7 @@ macro_rules! bez_composite {
         $($dim:ident = $($dfield:ident),+;)+
     } elevated $elevated:ident<$($est:ty),+> {
         $($eindex:expr => $($edim:ident),+;)+
-    } chained $chain:ident) => 
+    }) => 
     {
         #[derive(Debug, Clone, Copy)]
         #[doc=$doc]
