@@ -166,6 +166,7 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
     type Vector = F;
     type Elevated = NBezPoly<F>;
 
+    /// Currently non-functional; returns `None`
     fn from_slice(_: &[F]) -> Option<NBezPoly<F, C>> {
         None
     }
@@ -209,8 +210,9 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
         NBezPoly::from_container(el_points)
     }
 
+    /// Currently non-functional; returns `None`
     fn split(&self, _: F) -> Option<(NBezPoly<F, C>, NBezPoly<F, C>)> {
-        unimplemented!()
+        None
     }
 
     fn order(&self) -> usize {
@@ -303,6 +305,7 @@ impl<P, V, F, C> BezCurve<F> for NBez<P, V, F, C>
     type Vector = V;
     type Elevated = NBez<P, V, F, Vec<P>>;
 
+    /// Currently non-functional; returns `None`
     fn from_slice(_: &[P]) -> Option<NBez<P, V, F, C>> {
         None
     }
@@ -370,8 +373,9 @@ impl<P, V, F, C> BezCurve<F> for NBez<P, V, F, C>
         NBez::from_container(el_points)
     }
 
+    /// Currently non-functional; returns `None`
     fn split(&self, _: F) -> Option<(NBez<P, V, F, C>, NBez<P, V, F, C>)> {
-        unimplemented!()
+        None
     }
 
     fn order(&self) -> usize {

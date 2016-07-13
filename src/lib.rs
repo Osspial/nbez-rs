@@ -101,7 +101,7 @@ pub trait BezCurve<F: Float>
     type Elevated: BezCurve<F, Point = Self::Point, Vector = Self::Vector>;
 
     /// Attempt to create a curve from a slice. Fails if the slice's length does not match the
-    /// curve's order + 1, or if it is being used to create an `NBez`/`NBezPoly`.
+    /// curve's order + 1.
     fn from_slice(&[Self::Point]) -> Option<Self>;
 
     /// Perform interpolation on the curve for a value of `t` from `0.0` to `1.0` inclusive. Returns `None`
@@ -119,7 +119,7 @@ pub trait BezCurve<F: Float>
         check_t_bounds!(t);
         Some(self.slope_unbounded(t))
     }
-    /// Get the slope for the given `t` with no range bounds.
+    /// Get the slope for the given `t` with no range bounds
     fn slope_unbounded(&self, t: F) -> Self::Vector;
 
     /// Elevate the curve order, getting a curve that is one order higher but gives the same results
