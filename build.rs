@@ -78,16 +78,13 @@ fn main() {
 
             for o in 0..(order + 1) {
                 let param_name = get_param_name(o, order);
-                write!(file, "    {}:", param_name).unwrap();
+                write!(file, "    {}", param_name).unwrap();
 
-                for dt in &dim_tags[0..dim] {
-                    write!(file, " {}_{}", dt, param_name).unwrap();
-
-                    if *dt != dim_tags[dim-1] {
-                        write!(file, ",").unwrap();
-                    }
-                }
-                writeln!(file, ";").unwrap();
+                if o != order {
+                    writeln!(file, ",")
+                } else {
+                    writeln!(file, "")
+                }.unwrap();
             }
 
             writeln!(file, "}} -> <Point{0}d; Vector{0}d> {{", dim).unwrap();

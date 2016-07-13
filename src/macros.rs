@@ -384,7 +384,7 @@ macro_rules! n_bezier {
 
 macro_rules! bez_composite {
     ($doc:expr, $order:expr; $name:ident<$poly:ident> {
-        $($field:ident: $($n_field:ident),+;)+
+        $($field:ident),+
     } -> <$point:ident; $vector:ident> {
         $($dim:ident = $($dfield:ident),+;)+
     } elevated $elevated:ident<$($est:ty),+> {
@@ -398,9 +398,9 @@ macro_rules! bez_composite {
         }
 
         impl<F: $crate::traitdefs::Float> $name<F> {
-            pub fn new($($($n_field: F),+),+) -> $name<F> {
+            pub fn new($($field: $point<F>),+) -> $name<F> {
                 $name {
-                    $($field: $point::new($($n_field),+)),+
+                    $($field: $field),+
                 }
             }
 

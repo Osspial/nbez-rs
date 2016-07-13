@@ -47,10 +47,10 @@ fn main() {
     ).unwrap();
 
     let curve = Bez3o2d::new(
-        -0.5, -0.5,
-         0.5, -0.5,
-        -0.5,  0.5,
-         0.5,  0.5,
+        Point2d::new(-0.5, -0.5),
+        Point2d::new( 0.5, -0.5),
+        Point2d::new(-0.5,  0.5),
+        Point2d::new( 0.5,  0.5),
     );
 
     let (left, right) = curve.split(0.3).unwrap();
