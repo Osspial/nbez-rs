@@ -3,6 +3,7 @@ use std::convert::{AsRef, AsMut, From};
 use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 use std::fmt::{Debug, Formatter};
+use std::ops::Range;
 
 
 use super::{BezCurve, lerp};
@@ -25,6 +26,10 @@ impl RangeSlice {
         }
     }
 
+    fn as_range(&self) -> Range<usize> {
+        self.start..self.end
+    }
+
     fn len(&self) -> usize {
         self.end - self.start
     }
@@ -43,37 +48,37 @@ fn factorial(mut n: u64) -> u64 {
     accumulator
 }
 
-/// Gets the index of the bezier factors inside of FACTORS global.
-fn order_index(order: usize) -> usize {
-    (order*order+order)/2
-}
+/// Given the `order` and references to the `factors`, `dfactors`, and `vec` cells, update the
+/// cells to contain accurate information about the factors of the order. 
+fn update_factors(order: usize, factors: &Cell<RangeSlice>, dfactors: &Cell<RangeSlice>, vec: &RefCell<Vec<u64>>) {
+    if factors.get().len() != order + 1 {
+        let mut vec = vec.borrow_mut();
+        // Remove everything from the vector without freeing memory
+        unsafe{ vec.set_len(0) };
 
-thread_local!{
-    static FACTORS: RefCell<(isize, Vec<u64>)> = RefCell::new((-1, Vec::with_capacity(order_index(20+1))))
-}
+        // The vector stores both the factors of the order and the order's derivative, and this is the
+        // length necessary to contain those factors.
+        let new_len = (order + 1) * 2 - 1;
+        if vec.capacity() < new_len {
+            let reserve_amount = new_len - vec.capacity();
+            vec.reserve(reserve_amount);
+        }
 
-/// Returns a RangeSlice for FACTORS with the appropriate factors for the given order. Calculates
-/// factors if necessary.
-fn factors(order: usize) -> RangeSlice {
-    FACTORS.with(|f| {
-        let max_order = f.borrow().0;
-        if order as isize > max_order {
-            let mut f = f.borrow_mut();
-            f.0 = order as isize;
+        {
+            let order = order as u64;
 
-            // Because max_order defines the maximum current order, we need to increment it in order to avoid
-            // re-pushing the current max order. Also, we increment the upper bound, `order`, so that the
-            // calculations include `order`.
-            for n in (max_order+1) as usize..order+1 {
-                for k in 0..n+1 {
-                    f.1.push(combination(n as u64, k as u64));
-                }
+            for k in 0..order + 1 {
+                vec.push(combination(order, k));
+            }
+
+            for k in 0..order {
+                vec.push(combination(order - 1, k));
             }
         }
 
-        let order_index = order_index(order);
-        RangeSlice::new(order_index, order_index+order+1)
-    })
+        factors.set(RangeSlice::new(0, order + 1));
+        dfactors.set(RangeSlice::new(order + 1, vec.len()));
+    }
 }
 
 
@@ -83,6 +88,7 @@ pub struct NBezPoly<F, C = Vec<F>>
         where F: Float,
               C: AsRef<[F]> {
     points: C,
+    factor_vec: RefCell<Vec<u64>>,
     factors: Cell<RangeSlice>,
     dfactors: Cell<RangeSlice>,
     phantom: PhantomData<F>
@@ -107,6 +113,7 @@ impl<F, C> NBezPoly<F, C>
 
         NBezPoly {
             points: points,
+            factor_vec: RefCell::new(Vec::new()),
             factors: Cell::new(RangeSlice::new(0, 0)),
             dfactors: Cell::new(RangeSlice::new(0, 0)),
             phantom: PhantomData
@@ -118,43 +125,37 @@ impl<F, C> NBezPoly<F, C>
         self.points
     }
 
-    unsafe fn interp_unchecked<I: Iterator<Item=F>>(t: F, factors: RangeSlice, iter: I) -> F {
+    unsafe fn interp_unchecked<I: Iterator<Item=F>>(t: F, factors: &[u64], iter: I) -> F {
         let t1 = F::from_f32(1.0).unwrap() - t;
         let order = factors.len() - 1;
         let mut acc = F::from_f32(0.0).unwrap();
         let mut factor = 0;
 
-        FACTORS.with(|fs| {
-            let fs = fs.borrow();
-            for point in iter {
-                acc = acc + t.powi(factor as i32) *
-                            t1.powi((order-factor) as i32) *
-                            point *
-                            F::from_u64(fs.1[factors.start + factor]).unwrap();
-                factor += 1;
-            }            
-        });
+        for point in iter {
+            acc = acc + t.powi(factor as i32) *
+                        t1.powi((order-factor) as i32) *
+                        point *
+                        F::from_u64(factors[factor]).unwrap();
+            factor += 1;
+        }            
         acc        
     }
 
-    unsafe fn slope_unchecked<I: Iterator<Item=F>>(t: F, dfactors: RangeSlice, mut iter: I) -> F {
+    unsafe fn slope_unchecked<I: Iterator<Item=F>>(t: F, dfactors: &[u64], mut iter: I) -> F {
         let t1 = F::from_f32(1.0).unwrap() - t;
         let order = dfactors.len() - 1;
         let mut acc = F::from_f32(0.0).unwrap();
         let mut factor = 0;
         let mut point_next = iter.next().unwrap();
 
-        FACTORS.with(|fs| {
-            let fs = fs.borrow();
-            for point in iter {
-                acc = acc + t.powi(factor as i32) *
-                            t1.powi((order-factor) as i32) *
-                            (point - point_next) *
-                            F::from_u64(fs.1[dfactors.start + factor] * (order + 1) as u64).unwrap();
-                point_next = point;
-                factor += 1;
-            }            
-        });
+        for point in iter {
+            acc = acc + t.powi(factor as i32) *
+                        t1.powi((order-factor) as i32) *
+                        (point - point_next) *
+                        F::from_u64(dfactors[factor] * (order + 1) as u64).unwrap();
+            point_next = point;
+            factor += 1;
+        }            
         acc
     }
 }
@@ -173,21 +174,16 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
 
     fn interp_unbounded(&self, t: F) -> F {
         let points = self.points.as_ref();
-        if self.factors.get().len() != self.order() + 1 {
-            self.factors.set(factors(self.order()))
-        }
+        update_factors(self.order(), &self.factors, &self.dfactors, &self.factor_vec);
 
-        unsafe{ NBezPoly::<_, &[_]>::interp_unchecked(t, self.factors.get(), points.iter().map(|f| *f)) }
+        unsafe{ NBezPoly::<_, &[_]>::interp_unchecked(t, &self.factor_vec.borrow()[self.factors.get().as_range()], points.iter().map(|f| *f)) }
     }
 
     fn slope_unbounded(&self, t: F) -> F {
         let points = self.points.as_ref();
-        let order = self.order() - 1;
-        if self.dfactors.get().len() != order + 1 {
-            self.dfactors.set(factors(order))
-        }
+        update_factors(self.order(), &self.factors, &self.dfactors, &self.factor_vec);
 
-        unsafe{ NBezPoly::<_, &[_]>::slope_unchecked(t, self.dfactors.get(), points.iter().map(|f| *f)) }
+        unsafe{ NBezPoly::<_, &[_]>::slope_unchecked(t, &self.factor_vec.borrow()[self.dfactors.get().as_range()], points.iter().map(|f| *f)) }
     }
 
     fn elevate(&self) -> NBezPoly<F> {
@@ -254,6 +250,7 @@ pub struct NBez<P, V, F, C>
               P: Point<F>,
               V: Vector<F, P> {
     points: C,
+    factor_vec: RefCell<Vec<u64>>,
     factors: Cell<RangeSlice>,
     dfactors: Cell<RangeSlice>,
 
@@ -283,6 +280,7 @@ impl<P, V, F, C> NBez<P, V, F, C>
 
         NBez {
             points: container,
+            factor_vec: RefCell::new(Vec::new()),
             factors: Cell::new(RangeSlice::new(0, 0)),
             dfactors: Cell::new(RangeSlice::new(0, 0)),
 
@@ -316,15 +314,12 @@ impl<P, V, F, C> BezCurve<F> for NBez<P, V, F, C>
         // Initialize a point by cloning one from the point list
         let mut point = points[0].clone();
 
-        // If the factors aren't correct for the current order, recompute factors
-        if self.factors.get().len() != self.order() + 1 {
-            self.factors.set(factors(self.order()))
-        }
+        update_factors(self.order(), &self.factors, &self.dfactors, &self.factor_vec);
 
         // Iterate over all elements of the point and set them to the interpolated value
         for (i, f) in point.as_mut().iter_mut().enumerate() {
             let iter = points.iter().map(|p| p.as_ref()[i]);
-            *f = unsafe{ NBezPoly::<_, &[_]>::interp_unchecked(t, self.factors.get(), iter) };
+            *f = unsafe{ NBezPoly::<_, &[_]>::interp_unchecked(t, &self.factor_vec.borrow()[self.factors.get().as_range()], iter) };
         }
 
         point
@@ -335,16 +330,13 @@ impl<P, V, F, C> BezCurve<F> for NBez<P, V, F, C>
 
         // Initialize a vector by cloning it from the point list and converting it into a vector
         let mut vector: V = points[0].clone().into();
-        let order = self.order() - 1;
 
-        if self.dfactors.get().len() != order + 1{
-            self.dfactors.set(factors(order))
-        }
+        update_factors(self.order(), &self.factors, &self.dfactors, &self.factor_vec);
 
         // Iterate over all elements of the vector and set them to the interpolated value
         for (i, f) in vector.as_mut().iter_mut().enumerate() {
             let iter = points.iter().map(|p| p.as_ref()[i]);
-            *f = unsafe{ NBezPoly::<_, &[_]>::slope_unchecked(t, self.dfactors.get(), iter) };
+            *f = unsafe{ NBezPoly::<_, &[_]>::slope_unchecked(t, &self.factor_vec.borrow()[self.dfactors.get().as_range()], iter) };
         }
 
         vector
