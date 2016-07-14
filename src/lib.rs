@@ -344,4 +344,58 @@ mod tests {
         nbez_poly.as_mut().push(-3.0);
         test_bez_elevation(&nbez_poly);
     }
+
+    fn test_bez_split<B>(curve: &B)
+            where B: BezCurve<f64, Point = f64, Vector = f64> {
+
+        // Sanity check bool to make sure the assertions are actually running
+        let mut has_run = false;
+
+        let mut s = 10.0/30.0;
+        while s < 1.0 {
+            let (left, right) = curve.split(s).unwrap();
+
+            let mut t = 0.0;
+            while t < 1.0 {
+                if t < s {
+                    println!("l {} {}", curve.interp(t).unwrap(), left.interp(t/s).unwrap());
+                    assert!((curve.interp(t).unwrap() - left.interp(t/s).unwrap()).abs() <= 0.000000001);
+                    has_run = true;
+
+                } else {
+                    println!("r {} {}", curve.interp(t).unwrap(), right.interp((t-s)/(1.0 - s)).unwrap());
+                    assert!((curve.interp(t).unwrap() - right.interp((t-s)/(1.0 - s)).unwrap()).abs() <= 0.000000001);
+                    has_run = true;
+                }
+
+                t += 1.0/30.0;
+            }
+
+            s += 1.0/30.0;
+        }
+
+        assert!(has_run);
+        println!("");
+    }
+
+    #[test]
+    fn bez_split() {
+        let bezpoly1o = BezPoly1o::new(0.0, 1.0);
+        test_bez_split(&bezpoly1o);
+
+        let bezpoly2o = BezPoly2o::new(0.0, 1.0, -1.0);
+        test_bez_split(&bezpoly2o);
+        
+        let bezpoly3o = BezPoly3o::new(0.0, 1.0, -1.0, 2.0);
+        test_bez_split(&bezpoly3o);
+        
+        let bezpoly4o = BezPoly4o::new(0.0, 1.0, -1.0, 2.0, -2.0);
+        test_bez_split(&bezpoly4o);
+        
+        let bezpoly5o = BezPoly5o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0);
+        test_bez_split(&bezpoly5o);
+        
+        let bezpoly6o = BezPoly6o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0, -3.0);
+        test_bez_split(&bezpoly6o);
+    }
 }
