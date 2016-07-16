@@ -70,55 +70,6 @@ fn main() {
             writeln!(file, "}} elevated BezPoly{}o<F> }}", order + 1).unwrap();
         }
     }
-
-    // Create composite curves
-    for dim in MIN_DIMS..(MAX_DIMS + 1) {
-        for order in MIN_ORDER..(MAX_ORDER + 1) {        
-            writeln!(file, "bez_composite!{{\"{1}-dimensional order {0} bezier curve\", {0}; Bez{0}o{1}d<BezPoly{0}o> {{", order, dim).unwrap();
-
-            for o in 0..(order + 1) {
-                let param_name = get_param_name(o, order);
-                write!(file, "    {}", param_name).unwrap();
-
-                if o != order {
-                    writeln!(file, ",")
-                } else {
-                    writeln!(file, "")
-                }.unwrap();
-            }
-
-            writeln!(file, "}} -> <Point{0}d; Vector{0}d> {{", dim).unwrap();
-
-            for dt in &dim_tags[0..dim] {
-                write!(file, "    {} =", dt).unwrap();
-
-                for o in 0..(order + 1) {
-                    write!(file, " {}", get_param_name(o, order)).unwrap();
-                    if o != order {
-                        write!(file, ",").unwrap();
-                    }
-                }
-                writeln!(file, ";").unwrap();
-            }
-
-            if order == MAX_ORDER {
-                writeln!(file, "}} elevated NBez<Point{0}d<F>, Vector{0}d<F>, F, [Point{0}d<F>; {1}]> {{", dim, order + 2).unwrap();
-            } else {
-                writeln!(file, "}} elevated Bez{}o{}d<F> {{", order + 1, dim).unwrap();
-            }
-            for o in 0..(order + 2) {
-                write!(file, "    {} =>", o).unwrap();
-                for dt in &dim_tags[0..dim] {
-                    write!(file, " {}", dt).unwrap();
-                    if *dt != dim_tags[dim-1] {
-                        write!(file, ",").unwrap();
-                    }
-                }
-                writeln!(file, ";").unwrap();
-            }
-            writeln!(file, "}}}}").unwrap();
-        }
-    }
 }
 
 fn get_param_name(param_number: usize, poly_order: usize) -> String {
