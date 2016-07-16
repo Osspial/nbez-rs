@@ -7,10 +7,7 @@ use std::ops::{Add, Sub, Mul, Div, Neg};
 pub trait Float: num_traits::float::Float + num_traits::cast::FromPrimitive + Debug {}
 impl<F> Float for F where F: num_traits::float::Float + num_traits::cast::FromPrimitive + Debug {}
 
-pub trait PVOps<F, Other>:
-		Add<Other, Output = Self> +
-		Sub<Other, Output = Self> +
-		
+pub trait PVOps<F>:		
 		Add<Self, Output = Self> +
 		Sub<Self, Output = Self> +
 		Mul<F, Output = Self> +
@@ -18,15 +15,20 @@ pub trait PVOps<F, Other>:
 		Neg<Output = Self>
 
 		where Self: Sized,
-			  F: Float,
-			  Other: PVOps<F, Self> {}
+			  F: Float {}
+
+impl<F: Float, PV> PVOps<F> for PV
+		where PV:			
+			Add<PV, Output = PV> +
+			Sub<PV, Output = PV> +
+			Mul<F, Output = PV> +
+			Div<F, Output = PV> +
+			Neg<Output = PV> {}
 
 pub trait Point<F, V>: 
-		AsRef<[F]> + 
-		AsMut<[F]> +
 		From<V> +
 		Clone + 
-		PVOps<F, V>
+		PVOps<F>
 
 		where Self: Sized,
 			  F: Float,
@@ -35,16 +37,14 @@ pub trait Point<F, V>:
 impl<F, P, V> Point<F, V> for P 
         where F: Float,
         	  V: Vector<F, P>,
-              P: AsRef<[F]> + AsMut<[F]> + From<V> + Clone + PVOps<F, V> {}
+              P: From<V> + Clone + PVOps<F> {}
 
 pub trait Vector<F: Float, P: Point<F, Self>>: 
-		AsRef<[F]> + 
-		AsMut<[F]> + 
 		From<P> +
 		Clone +
-		PVOps<F, P> {}
+		PVOps<F> {}
 
 impl<F, P, V> Vector<F, P> for V 
         where F: Float, 
               P: Point<F, V>, 
-              V: AsRef<[F]> + AsMut<[F]> + From<P> + Clone + PVOps<F, P> {}
+              V: From<P> + Clone + PVOps<F> {}
