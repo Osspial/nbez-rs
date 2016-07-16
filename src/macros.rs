@@ -219,38 +219,49 @@ macro_rules! n_bezier {
     } elevated $elevated:ident<$($est:ty),+>) => {
         #[derive(Debug, Clone, Copy)]
         #[doc=$doc]
-        pub struct $name<F> where F: $crate::traitdefs::Float {
-            $(pub $field: F),+
+        pub struct $name<F = f32, P = $crate::Point2d<F>, V = $crate::Vector2d<F>>
+                where F: $crate::traitdefs::Float,
+                      P: $crate::traitdefs::Point<F, V>,
+                      V: $crate::traitdefs::Vector<F, P> {
+            $(pub $field: P),+,
+            __marker: std::marker::PhantomData<(V, F)>
         }
 
-        impl<F> $name<F> where F: $crate::traitdefs::Float {
-            pub fn new($($field: F),+) -> $name<F> {
+        impl<F, P, V> $name<F, P, V>
+                where F: $crate::traitdefs::Float,
+                      P: $crate::traitdefs::Point<F, V>,
+                      V: $crate::traitdefs::Vector<F, P> {
+            pub fn new($($field: P),+) -> $name<F, P, V> {
                 $name {
-                    $($field: $field),+
+                    $($field: $field),+,
+                    __marker: std::marker::PhantomData
                 }
             }
         }
 
-        impl<F> $crate::BezCurve<F> for $name<F>
-                where F: $crate::traitdefs::Float {
-            type Point = F;
-            type Vector = F;
+        impl<F, P, V> $crate::BezCurve<F> for $name<F, P, V>
+                where P: $crate::traitdefs::Point<F, V>,
+                      V: $crate::traitdefs::Vector<F, P>,
+                      F: $crate::traitdefs::Float {
+            type Point = P;
+            type Vector = V;
             type Elevated = $elevated<$($est),+>;
 
-            fn from_slice(slice: &[F]) -> Option<$name<F>> {
+            fn from_slice(slice: &[P]) -> Option<$name<F, P, V>> {
                 use $crate::OrderStatic;
-                if slice.len() - 1 != $name::<F>::order_static() {
+                if slice.len() - 1 != $name::<F, P, V>::order_static() {
                     None
                 } else {
                     let mut index = -1;
                     Some($name {$($field: {
                         index += 1;
                         slice[index as usize]
-                    }),+})
+                    }),+,
+                    __marker: std::marker::PhantomData})
                 }
             }
 
-            fn interp_unbounded(&self, t: F) -> F {
+            fn interp_unbounded(&self, t: F) -> P {
                 let t1 = F::from_f32(1.0).unwrap() - t;
                 const COUNT: i32 = $order;
                 let mut factor = COUNT + 1;
@@ -258,15 +269,15 @@ macro_rules! n_bezier {
                 $(
                     factor -= 1;
                     let $field =
+                        self.$field *
                         t1.powi(factor) * 
-                        t.powi(COUNT-factor) * 
-                        self.$field * 
+                        t.powi(COUNT-factor) *  
                         F::from_i32($weight).unwrap();
                 )+
-                $($field +)+ F::from_f32(0.0).unwrap()
+                $($field +)+ P::zero()
             }
 
-            fn slope_unbounded(&self, t: F) -> F {
+            fn slope_unbounded(&self, t: F) -> V {
                 let t1 = F::from_f32(1.0).unwrap() - t;
                 const COUNT: i32 = $order - 1;
                 let mut factor = COUNT + 1;
@@ -274,12 +285,12 @@ macro_rules! n_bezier {
                 $(
                     factor -= 1;
                     let $right =
+                        (self.$right - self.$left) *
                         t1.powi(factor) *
                         t.powi(COUNT-factor) *
-                        (self.$right - self.$left) *
                         F::from_i32($dweight * (COUNT + 1)).unwrap();
                 )+
-                $($right +)+ F::from_f32(0.0).unwrap()
+                V::from($($right +)+ P::zero())
             }
 
             fn elevate(&self) -> $elevated<$($est),+> {
@@ -295,7 +306,7 @@ macro_rules! n_bezier {
                     self.$end])
             }
 
-            fn split(&self, t: F) -> Option<($name<F>, $name<F>)> {
+            fn split(&self, t: F) -> Option<($name<F, P, V>, $name<F, P, V>)> {
                 use $crate::lerp;
 
 
@@ -310,7 +321,7 @@ macro_rules! n_bezier {
                     let pslice = self.as_ref();
 
                     const LERP_LEN: usize = $sum;
-                    let mut lerps = [F::from_f32(0.0).unwrap(); LERP_LEN];
+                    let mut lerps = [P::zero(); LERP_LEN];
 
                     // Populate `lerps` with linear interpolations of points and other elements of lerps.
                     //
@@ -352,7 +363,7 @@ macro_rules! n_bezier {
 
                     // An array containing the control points that compose the split curves, with one point of overlap
                     // where the curves meet.
-                    let mut points = [F::from_f32(0.0).unwrap(); POINTS_LEN];
+                    let mut points = [P::zero(); POINTS_LEN];
                     points[0] = self.$start;
                     points[$order] = lerps[LERP_LEN - 1];
                     points[POINTS_LEN - 1] = self.$end;
@@ -379,42 +390,50 @@ macro_rules! n_bezier {
 
             fn order(&self) -> usize {
                 use $crate::OrderStatic;
-                $name::<F>::order_static()
+                $name::<F, P, V>::order_static()
             }
         }
 
-        impl<F> $crate::OrderStatic for $name<F> 
-                where F: $crate::traitdefs::Float {
+        impl<F, P, V> $crate::OrderStatic for $name<F, P, V> 
+                where F: $crate::traitdefs::Float,
+                      P: $crate::traitdefs::Point<F, V>,
+                      V: $crate::traitdefs::Vector<F, P> {
             #[inline]
             fn order_static() -> usize {
                 $order
             }
         }
 
-        impl<F> ::std::convert::From<[F; $order + 1]> for $name<F> 
-                where F: $crate::traitdefs::Float {
-            fn from(array: [F; $order + 1]) -> $name<F> {
+        impl<F, P, V> ::std::convert::From<[P; $order + 1]> for $name<F, P, V> 
+                where F: $crate::traitdefs::Float,
+                      P: $crate::traitdefs::Point<F, V>,
+                      V: $crate::traitdefs::Vector<F, P> {
+            fn from(array: [P; $order + 1]) -> $name<F, P, V> {
                 use $crate::BezCurve;
                 $name::from_slice(&array[..]).unwrap()
             }
         }
 
-        impl<F> ::std::convert::AsRef<[F]> for $name<F> 
-                where F: $crate::traitdefs::Float {
-            fn as_ref(&self) -> &[F] {
+        impl<F, P, V> ::std::convert::AsRef<[P]> for $name<F, P, V> 
+                where F: $crate::traitdefs::Float,
+                      P: $crate::traitdefs::Point<F, V>,
+                      V: $crate::traitdefs::Vector<F, P> {
+            fn as_ref(&self) -> &[P] {
                 use std::slice;
                 unsafe {
-                    slice::from_raw_parts(self as *const $name<F> as *const F, $order + 1)
+                    slice::from_raw_parts(self as *const $name<F, P, V> as *const P, $order + 1)
                 }
             }
         }
 
-        impl<F> ::std::convert::AsMut<[F]> for $name<F> 
-                where F: $crate::traitdefs::Float {
-            fn as_mut(&mut self) -> &mut [F] {
+        impl<F, P, V> ::std::convert::AsMut<[P]> for $name<F, P, V> 
+                where F: $crate::traitdefs::Float,
+                      P: $crate::traitdefs::Point<F, V>,
+                      V: $crate::traitdefs::Vector<F, P> {
+            fn as_mut(&mut self) -> &mut [P] {
                 use std::slice;
                 unsafe {
-                    slice::from_raw_parts_mut(self as *mut $name<F> as *mut F, $order + 1)
+                    slice::from_raw_parts_mut(self as *mut $name<F, P, V> as *mut P, $order + 1)
                 }
             }
         }

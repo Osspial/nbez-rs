@@ -6,7 +6,7 @@ use std::fmt::{Debug, Formatter};
 use std::ops::Range;
 
 
-use super::{BezCurve, lerp};
+use super::{BezCurve, Point2d, Vector2d, lerp};
 
 /// A struct that contains range information for slicing, used for slicing into the global factor
 /// vector. The reason this is used instead of stdlib's `Range` struct is that `Range` does not
@@ -82,36 +82,42 @@ fn update_factors(order: usize, factors: &Cell<RangeSlice>, dfactors: &Cell<Rang
 }
 
 
-/// An n-order bezier polynomial
+/// An n-order bezier curve
 #[derive(Clone)]
-pub struct NBezPoly<F, C = Vec<F>> 
+pub struct NBez<F, P = Point2d<F>, V = Vector2d<F>, C = Vec<P>> 
         where F: Float,
-              C: AsRef<[F]> {
+              P: Point<F, V>,
+              V: Vector<F, P>,
+              C: AsRef<[P]> {
     points: C,
     factor_vec: RefCell<Vec<u64>>,
     factors: Cell<RangeSlice>,
     dfactors: Cell<RangeSlice>,
-    phantom: PhantomData<F>
+    phantom: PhantomData<(F, P, V)>
 }
 
-impl<F, C> From<C> for NBezPoly<F, C>
+impl<F, P, V, C> From<C> for NBez<F, P, V, C>
         where F: Float,
-              C: AsRef<[F]> {
-    fn from(container: C) -> NBezPoly<F, C> {
-        NBezPoly::from_container(container)
+              P: Point<F, V>,
+              V: Vector<F, P>,
+              C: AsRef<[P]> {
+    fn from(container: C) -> NBez<F, P, V, C> {
+        NBez::from_container(container)
     }
 }
 
-impl<F, C> NBezPoly<F, C>
+impl<F, P, V, C> NBez<F, P, V, C>
         where F: Float,
-              C: AsRef<[F]> {
+              P: Point<F, V>,
+              V: Vector<F, P>,
+              C: AsRef<[P]> {
     #[inline]
-    pub fn from_container(points: C) -> NBezPoly<F, C> {
+    pub fn from_container(points: C) -> NBez<F, P, V, C> {
         if points.as_ref().len() >= 22 {
             panic!("Cannot create Bézier polynomials with an order >= 21")
         }
 
-        NBezPoly {
+        NBez {
             points: points,
             factor_vec: RefCell::new(Vec::new()),
             factors: Cell::new(RangeSlice::new(0, 0)),
@@ -124,69 +130,66 @@ impl<F, C> NBezPoly<F, C>
     pub fn unwrap(self) -> C {
         self.points
     }
+}
 
-    unsafe fn interp_unchecked<I: Iterator<Item=F>>(t: F, factors: &[u64], iter: I) -> F {
-        let t1 = F::from_f32(1.0).unwrap() - t;
-        let order = factors.len() - 1;
-        let mut acc = F::from_f32(0.0).unwrap();
-        let mut factor = 0;
+impl<F, P, V, C> BezCurve<F> for NBez<F, P, V, C> 
+        where F: Float,
+              P: Point<F, V>,
+              V: Vector<F, P>,
+              C: AsRef<[P]> {
+    type Point = P;
+    type Vector = V;
+    type Elevated = NBez<F, P, V, Vec<P>>;
 
-        for point in iter {
-            acc = acc + t.powi(factor as i32) *
-                        t1.powi((order-factor) as i32) *
-                        point *
-                        F::from_u64(factors[factor]).unwrap();
-            factor += 1;
-        }            
-        acc        
+    /// Currently non-functional; returns `None`
+    fn from_slice(_: &[P]) -> Option<NBez<F, P, V, C>> {
+        None
     }
 
-    unsafe fn slope_unchecked<I: Iterator<Item=F>>(t: F, dfactors: &[u64], mut iter: I) -> F {
-        let t1 = F::from_f32(1.0).unwrap() - t;
-        let order = dfactors.len() - 1;
-        let mut acc = F::from_f32(0.0).unwrap();
-        let mut factor = 0;
-        let mut point_next = iter.next().unwrap();
+    fn interp_unbounded(&self, t: F) -> P {
+        let points = self.points.as_ref();
+        update_factors(self.order(), &self.factors, &self.dfactors, &self.factor_vec);
+        let factors = &self.factor_vec.borrow()[self.factors.get().as_range()];
 
-        for point in iter {
-            acc = acc + t.powi(factor as i32) *
-                        t1.powi((order-factor) as i32) *
-                        (point - point_next) *
-                        F::from_u64(dfactors[factor] * (order + 1) as u64).unwrap();
-            point_next = point;
+
+        let t1 = F::from_f32(1.0).unwrap() - t;
+        let order = factors.len() - 1;
+        let mut acc = P::zero();
+        let mut factor = 0;
+
+        for point in points.iter() {
+            acc = acc + *point * 
+                        t.powi(factor as i32) *
+                        t1.powi((order - factor) as i32) *
+                        F::from_u64(factors[factor]).unwrap();
             factor += 1;
         }            
         acc
     }
-}
 
-impl<F, C> BezCurve<F> for NBezPoly<F, C> 
-        where F: Float,
-              C: AsRef<[F]> {
-    type Point = F;
-    type Vector = F;
-    type Elevated = NBezPoly<F>;
-
-    /// Currently non-functional; returns `None`
-    fn from_slice(_: &[F]) -> Option<NBezPoly<F, C>> {
-        None
-    }
-
-    fn interp_unbounded(&self, t: F) -> F {
+    fn slope_unbounded(&self, t: F) -> V {
         let points = self.points.as_ref();
         update_factors(self.order(), &self.factors, &self.dfactors, &self.factor_vec);
+        let dfactors = &self.factor_vec.borrow()[self.dfactors.get().as_range()];
 
-        unsafe{ NBezPoly::<_, &[_]>::interp_unchecked(t, &self.factor_vec.borrow()[self.factors.get().as_range()], points.iter().map(|f| *f)) }
+        let t1 = F::from_f32(1.0).unwrap() - t;
+        let order = dfactors.len() - 1;
+        let mut acc = P::zero();
+        let mut factor = 0;
+        let mut point_last = points[0].clone();
+
+        for point in points[1..].iter().map(|p| *p) {
+            acc = acc + (point - point_last) *
+                        t.powi(factor as i32) *
+                        t1.powi((order-factor) as i32) *
+                        F::from_u64(dfactors[factor] * (order + 1) as u64).unwrap();
+            point_last = point;
+            factor += 1;
+        }            
+        V::from(acc)
     }
 
-    fn slope_unbounded(&self, t: F) -> F {
-        let points = self.points.as_ref();
-        update_factors(self.order(), &self.factors, &self.dfactors, &self.factor_vec);
-
-        unsafe{ NBezPoly::<_, &[_]>::slope_unchecked(t, &self.factor_vec.borrow()[self.dfactors.get().as_range()], points.iter().map(|f| *f)) }
-    }
-
-    fn elevate(&self) -> NBezPoly<F> {
+    fn elevate(&self) -> NBez<F, P, V, Vec<P>> {        
         let points = self.points.as_ref();
         let order = self.order() + 1;
         let order_f = F::from_usize(order).unwrap();
@@ -196,18 +199,18 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
         el_points.push(points[0]);
 
         let mut prev_p = points[0];
-        for (i, p) in points.iter().map(|p| *p).enumerate().skip(1) {
+        for (i, p) in points[1..].iter().map(|p| *p).enumerate() {
             el_points.push(lerp(p, prev_p, F::from_usize(i).unwrap()/order_f));
 
             prev_p = p;
         }
 
         el_points.push(points[self.order()]);
-        NBezPoly::from_container(el_points)
+        NBez::from_container(el_points)
     }
 
     /// Currently non-functional; returns `None`
-    fn split(&self, _: F) -> Option<(NBezPoly<F, C>, NBezPoly<F, C>)> {
+    fn split(&self, _: F) -> Option<(NBez<F, P, V, C>, NBez<F, P, V, C>)> {
         None
     }
 
@@ -216,27 +219,33 @@ impl<F, C> BezCurve<F> for NBezPoly<F, C>
     }
 }
 
-impl<F, C> AsRef<C> for NBezPoly<F, C>
+impl<F, P, V, C> AsRef<C> for NBez<F, P, V, C>
         where F: Float,
-              C: AsRef<[F]> {
+              P: Point<F, V>,
+              V: Vector<F, P>,
+              C: AsRef<[P]> {
     fn as_ref(&self) -> &C {
         &self.points
     }
 }
 
-impl<F, C> AsMut<C> for NBezPoly<F, C>
+impl<F, P, V, C> AsMut<C> for NBez<F, P, V, C>
         where F: Float,
-              C: AsRef<[F]> {
+              P: Point<F, V>,
+              V: Vector<F, P>,
+              C: AsRef<[P]> {
     fn as_mut(&mut self) -> &mut C {
         &mut self.points
     }
 }
 
-impl<F, C> Debug for NBezPoly<F, C>
+impl<F, P, V, C> Debug for NBez<F, P, V, C>
         where F: Float,
-              C: AsRef<[F]> + Debug {
+              P: Point<F, V>,
+              V: Vector<F, P>,
+              C: AsRef<[P]> + Debug {
     fn fmt(&self, f: &mut Formatter) -> Result<(), ::std::fmt::Error> {
-        f.debug_tuple("NBezPoly")
+        f.debug_tuple("NBez")
             .field(&self.points)
             .finish()
     }

@@ -7,12 +7,12 @@ pub mod traitdefs;
 mod nbez;
 pub use nbez::*;
 
-use traitdefs::Float;
+use traitdefs::{Float, PVOps};
 use std::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
 
 #[inline] 
-fn lerp<F: Float>(a: F, b: F, factor: F) -> F { 
+fn lerp<PV: PVOps<F>, F: Float>(a: PV, b: PV, factor: F) -> PV { 
     let fact1 = F::from_f32(1.0).unwrap() - factor; 
     a * fact1 + b * factor 
 }

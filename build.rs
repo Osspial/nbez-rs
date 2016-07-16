@@ -35,7 +35,7 @@ fn main() {
 
     // Create one-dimensional bezier polynomials
     for order in MIN_ORDER..(MAX_ORDER + 1) {
-        writeln!(file, "n_bezier!{{\"Order {0} bezier polynomial\", {0}, {1}; BezPoly{0}o {{", order, sum(order)).unwrap();
+        writeln!(file, "n_bezier!{{\"Order {0} bezier curve\", {0}, {1}; Bez{0}o {{", order, sum(order)).unwrap();
         for o in 0..(order + 1) {
             write!(file, "    {}: {}", get_param_name(o, order), combination(order, o)).unwrap();
 
@@ -65,9 +65,9 @@ fn main() {
         writeln!(file, "    {};", get_param_name(order, order)).unwrap();
 
         if order == MAX_ORDER {
-            writeln!(file, "}} elevated NBezPoly<F, [F; {}]> }}", order + 2).unwrap();
+            writeln!(file, "}} elevated NBez<F, P, V, [P; {}]> }}", order + 2).unwrap();
         } else {
-            writeln!(file, "}} elevated BezPoly{}o<F> }}", order + 1).unwrap();
+            writeln!(file, "}} elevated Bez{}o<F, P, V> }}", order + 1).unwrap();
         }
     }
 }
