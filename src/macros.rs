@@ -20,6 +20,26 @@ macro_rules! n_pointvector {
                 }
             }
         }
+
+        impl<F: $crate::traitdefs::Float> std::ops::Mul<$rhs<F>> for $lhs<F> {
+            type Output = $lhs<F>;
+
+            fn mul(self, rhs: $rhs<F>) -> $lhs<F> {
+                $lhs {
+                    $($field: self.$field * rhs.$field),*
+                }
+            }
+        }
+
+        impl<F: $crate::traitdefs::Float> std::ops::Div<$rhs<F>> for $lhs<F> {
+            type Output = $lhs<F>;
+
+            fn div(self, rhs: $rhs<F>) -> $lhs<F> {
+                $lhs {
+                    $($field: self.$field / rhs.$field),+
+                }
+            }
+        }
     };
 
     (float ops $name:ident {$($field:ident),+}) => {
@@ -55,7 +75,7 @@ macro_rules! n_pointvector {
     };
 
     (struct $doc:expr, $dims:expr; $name:ident {$($field:ident: $f_ty:ident),+} $sibling:ident) => {
-        #[derive(Debug, Clone, Copy)]
+        #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
         #[doc=$doc]
         pub struct $name<F: $crate::traitdefs::Float> {
             $(pub $field: F),+
@@ -113,6 +133,26 @@ macro_rules! n_pointvector {
                 use std::slice;
                 unsafe {
                     slice::from_raw_parts_mut(self as *mut $name<F> as *mut F, $dims)
+                }
+            }
+        }
+
+        impl<F: $crate::traitdefs::Float> num_traits::identities::Zero for $name<F> {
+            fn zero() -> $name<F> {
+                $name {
+                    $($field: F::zero()),+
+                }
+            }
+
+            fn is_zero(&self) -> bool {
+                *self == $name::<F>::zero()
+            }
+        }
+
+        impl<F: $crate::traitdefs::Float> num_traits::identities::One for $name<F> {
+            fn one() -> $name<F> {
+                $name {
+                    $($field: F::one()),+
                 }
             }
         }
