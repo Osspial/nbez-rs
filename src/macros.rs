@@ -222,7 +222,7 @@ macro_rules! n_bezier {
         pub struct $name<F = f32, P = $crate::Point2d<F>, V = $crate::Vector2d<F>>
                 where F: $crate::traitdefs::Float,
                       P: $crate::traitdefs::Point<F, V>,
-                      V: $crate::traitdefs::Vector<F, P> {
+                      V: $crate::traitdefs::Vector<F> {
             $(pub $field: P),+,
             __marker: std::marker::PhantomData<(V, F)>
         }
@@ -230,7 +230,7 @@ macro_rules! n_bezier {
         impl<F, P, V> $name<F, P, V>
                 where F: $crate::traitdefs::Float,
                       P: $crate::traitdefs::Point<F, V>,
-                      V: $crate::traitdefs::Vector<F, P> {
+                      V: $crate::traitdefs::Vector<F> {
             pub fn new($($field: P),+) -> $name<F, P, V> {
                 $name {
                     $($field: $field),+,
@@ -241,7 +241,7 @@ macro_rules! n_bezier {
 
         impl<F, P, V> $crate::BezCurve<F> for $name<F, P, V>
                 where P: $crate::traitdefs::Point<F, V>,
-                      V: $crate::traitdefs::Vector<F, P>,
+                      V: $crate::traitdefs::Vector<F>,
                       F: $crate::traitdefs::Float {
             type Point = P;
             type Vector = V;
@@ -290,7 +290,7 @@ macro_rules! n_bezier {
                         t.powi(COUNT-factor) *
                         F::from_i32($dweight * (COUNT + 1)).unwrap();
                 )+
-                V::from($($right +)+ P::zero())
+                ($($right +)+ P::zero()).into()
             }
 
             fn elevate(&self) -> $elevated<$($est),+> {
@@ -397,7 +397,7 @@ macro_rules! n_bezier {
         impl<F, P, V> $crate::OrderStatic for $name<F, P, V> 
                 where F: $crate::traitdefs::Float,
                       P: $crate::traitdefs::Point<F, V>,
-                      V: $crate::traitdefs::Vector<F, P> {
+                      V: $crate::traitdefs::Vector<F> {
             #[inline]
             fn order_static() -> usize {
                 $order
@@ -407,7 +407,7 @@ macro_rules! n_bezier {
         impl<F, P, V> ::std::convert::From<[P; $order + 1]> for $name<F, P, V> 
                 where F: $crate::traitdefs::Float,
                       P: $crate::traitdefs::Point<F, V>,
-                      V: $crate::traitdefs::Vector<F, P> {
+                      V: $crate::traitdefs::Vector<F> {
             fn from(array: [P; $order + 1]) -> $name<F, P, V> {
                 use $crate::BezCurve;
                 $name::from_slice(&array[..]).unwrap()
@@ -417,7 +417,7 @@ macro_rules! n_bezier {
         impl<F, P, V> ::std::convert::AsRef<[P]> for $name<F, P, V> 
                 where F: $crate::traitdefs::Float,
                       P: $crate::traitdefs::Point<F, V>,
-                      V: $crate::traitdefs::Vector<F, P> {
+                      V: $crate::traitdefs::Vector<F> {
             fn as_ref(&self) -> &[P] {
                 use std::slice;
                 unsafe {
@@ -429,7 +429,7 @@ macro_rules! n_bezier {
         impl<F, P, V> ::std::convert::AsMut<[P]> for $name<F, P, V> 
                 where F: $crate::traitdefs::Float,
                       P: $crate::traitdefs::Point<F, V>,
-                      V: $crate::traitdefs::Vector<F, P> {
+                      V: $crate::traitdefs::Vector<F> {
             fn as_mut(&mut self) -> &mut [P] {
                 use std::slice;
                 unsafe {

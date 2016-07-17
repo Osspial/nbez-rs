@@ -30,27 +30,25 @@ impl<F: Float, PV> PVOps<F> for PV
 			Zero {}
 
 pub trait Point<F, V>: 
-		From<V> +
+		Into<V> +
 		Clone +
 		Copy + 
 		PVOps<F>
 
 		where Self: Sized,
 			  F: Float,
-			  V: Vector<F, Self> {}
+			  V: Vector<F> {}
 
 impl<F, P, V> Point<F, V> for P 
         where F: Float,
-        	  V: Vector<F, P>,
-              P: From<V> + Clone + Copy + PVOps<F> {}
+        	  V: Vector<F>,
+              P: Into<V> + Clone + Copy + PVOps<F> {}
 
-pub trait Vector<F: Float, P: Point<F, Self>>: 
-		From<P> +
+pub trait Vector<F: Float>: 
 		Clone +
 		Copy +
 		PVOps<F> {}
 
-impl<F, P, V> Vector<F, P> for V 
+impl<F, V> Vector<F> for V 
         where F: Float, 
-              P: Point<F, V>,
-              V: From<P> + Clone + Copy + PVOps<F> {}
+              V: Clone + Copy + PVOps<F> {}

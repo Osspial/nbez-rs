@@ -87,7 +87,7 @@ fn update_factors(order: usize, factors: &Cell<RangeSlice>, dfactors: &Cell<Rang
 pub struct NBez<F, P = Point2d<F>, V = Vector2d<F>, C = Vec<P>> 
         where F: Float,
               P: Point<F, V>,
-              V: Vector<F, P>,
+              V: Vector<F>,
               C: AsRef<[P]> {
     points: C,
     factor_vec: RefCell<Vec<u64>>,
@@ -99,7 +99,7 @@ pub struct NBez<F, P = Point2d<F>, V = Vector2d<F>, C = Vec<P>>
 impl<F, P, V, C> From<C> for NBez<F, P, V, C>
         where F: Float,
               P: Point<F, V>,
-              V: Vector<F, P>,
+              V: Vector<F>,
               C: AsRef<[P]> {
     fn from(container: C) -> NBez<F, P, V, C> {
         NBez::from_container(container)
@@ -109,7 +109,7 @@ impl<F, P, V, C> From<C> for NBez<F, P, V, C>
 impl<F, P, V, C> NBez<F, P, V, C>
         where F: Float,
               P: Point<F, V>,
-              V: Vector<F, P>,
+              V: Vector<F>,
               C: AsRef<[P]> {
     #[inline]
     pub fn from_container(points: C) -> NBez<F, P, V, C> {
@@ -135,7 +135,7 @@ impl<F, P, V, C> NBez<F, P, V, C>
 impl<F, P, V, C> BezCurve<F> for NBez<F, P, V, C> 
         where F: Float,
               P: Point<F, V>,
-              V: Vector<F, P>,
+              V: Vector<F>,
               C: AsRef<[P]> {
     type Point = P;
     type Vector = V;
@@ -186,7 +186,7 @@ impl<F, P, V, C> BezCurve<F> for NBez<F, P, V, C>
             point_last = point;
             factor += 1;
         }            
-        V::from(acc)
+        acc.into()
     }
 
     fn elevate(&self) -> NBez<F, P, V, Vec<P>> {        
@@ -222,7 +222,7 @@ impl<F, P, V, C> BezCurve<F> for NBez<F, P, V, C>
 impl<F, P, V, C> AsRef<C> for NBez<F, P, V, C>
         where F: Float,
               P: Point<F, V>,
-              V: Vector<F, P>,
+              V: Vector<F>,
               C: AsRef<[P]> {
     fn as_ref(&self) -> &C {
         &self.points
@@ -232,7 +232,7 @@ impl<F, P, V, C> AsRef<C> for NBez<F, P, V, C>
 impl<F, P, V, C> AsMut<C> for NBez<F, P, V, C>
         where F: Float,
               P: Point<F, V>,
-              V: Vector<F, P>,
+              V: Vector<F>,
               C: AsRef<[P]> {
     fn as_mut(&mut self) -> &mut C {
         &mut self.points
@@ -242,7 +242,7 @@ impl<F, P, V, C> AsMut<C> for NBez<F, P, V, C>
 impl<F, P, V, C> Debug for NBez<F, P, V, C>
         where F: Float,
               P: Point<F, V>,
-              V: Vector<F, P>,
+              V: Vector<F>,
               C: AsRef<[P]> + Debug {
     fn fmt(&self, f: &mut Formatter) -> Result<(), ::std::fmt::Error> {
         f.debug_tuple("NBez")
