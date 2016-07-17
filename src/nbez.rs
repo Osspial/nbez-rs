@@ -199,7 +199,7 @@ impl<F, P, V, C> BezCurve<F> for NBez<F, P, V, C>
         el_points.push(points[0]);
 
         let mut prev_p = points[0];
-        for (i, p) in points[1..].iter().map(|p| *p).enumerate() {
+        for (i, p) in points.iter().map(|p| *p).enumerate().skip(1) {
             el_points.push(lerp(p, prev_p, F::from_usize(i).unwrap()/order_f));
 
             prev_p = p;
