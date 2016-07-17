@@ -269,38 +269,38 @@ mod tests {
 
     #[test]
     fn bez_poly_equiviliance() {
-        let mut nbez_poly = NBezPoly::from_container(Vec::with_capacity(7));
+        let mut nbez_poly = NBez::from_container(Vec::with_capacity(7));
         nbez_poly.as_mut().push(0.0);
         nbez_poly.as_mut().push(1.0);
 
-        let bezpoly1o = BezPoly1o::new(0.0, 1.0);
-        test_poly_eq(&nbez_poly, &bezpoly1o);
-        test_poly_slope_eq(&nbez_poly, &bezpoly1o);
+        let bez1o = Bez1o::new(0.0, 1.0);
+        test_poly_eq(&nbez_poly, &bez1o);
+        test_poly_slope_eq(&nbez_poly, &bez1o);
 
         nbez_poly.as_mut().push(-1.0);
-        let bezpoly2o = BezPoly2o::new(0.0, 1.0, -1.0);
-        test_poly_eq(&nbez_poly, &bezpoly2o);
-        test_poly_slope_eq(&nbez_poly, &bezpoly2o);
+        let bez2o = Bez2o::new(0.0, 1.0, -1.0);
+        test_poly_eq(&nbez_poly, &bez2o);
+        test_poly_slope_eq(&nbez_poly, &bez2o);
         
         nbez_poly.as_mut().push(2.0);
-        let bezpoly3o = BezPoly3o::new(0.0, 1.0, -1.0, 2.0);
-        test_poly_eq(&nbez_poly, &bezpoly3o);
-        test_poly_slope_eq(&nbez_poly, &bezpoly3o);
+        let bez3o = Bez3o::new(0.0, 1.0, -1.0, 2.0);
+        test_poly_eq(&nbez_poly, &bez3o);
+        test_poly_slope_eq(&nbez_poly, &bez3o);
         
         nbez_poly.as_mut().push(-2.0);
-        let bezpoly4o = BezPoly4o::new(0.0, 1.0, -1.0, 2.0, -2.0);
-        test_poly_eq(&nbez_poly, &bezpoly4o);
-        test_poly_slope_eq(&nbez_poly, &bezpoly4o);
+        let bez4o = Bez4o::new(0.0, 1.0, -1.0, 2.0, -2.0);
+        test_poly_eq(&nbez_poly, &bez4o);
+        test_poly_slope_eq(&nbez_poly, &bez4o);
         
         nbez_poly.as_mut().push(3.0);
-        let bezpoly5o = BezPoly5o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0);
-        test_poly_eq(&nbez_poly, &bezpoly5o);
-        test_poly_slope_eq(&nbez_poly, &bezpoly5o);
+        let bez5o = Bez5o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0);
+        test_poly_eq(&nbez_poly, &bez5o);
+        test_poly_slope_eq(&nbez_poly, &bez5o);
         
         nbez_poly.as_mut().push(-3.0);
-        let bezpoly6o = BezPoly6o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0, -3.0);
-        test_poly_eq(&nbez_poly, &bezpoly6o);
-        test_poly_slope_eq(&nbez_poly, &bezpoly6o);
+        let bez6o = Bez6o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0, -3.0);
+        test_poly_eq(&nbez_poly, &bez6o);
+        test_poly_slope_eq(&nbez_poly, &bez6o);
     }
 
     fn test_bez_elevation<B>(curve: &B)
@@ -313,17 +313,17 @@ mod tests {
 
     #[test]
     fn bez_elevation() {
-        test_bez_elevation(&BezPoly1o::new(0.0, 1.0));
-        test_bez_elevation(&BezPoly2o::new(0.0, 1.0, -1.0));
-        test_bez_elevation(&BezPoly3o::new(0.0, 1.0, -1.0, 2.0));
-        test_bez_elevation(&BezPoly4o::new(0.0, 1.0, -1.0, 2.0, -2.0));
-        test_bez_elevation(&BezPoly5o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0));
-        test_bez_elevation(&BezPoly6o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0, -3.0));
+        test_bez_elevation(&Bez1o::new(0.0, 1.0));
+        test_bez_elevation(&Bez2o::new(0.0, 1.0, -1.0));
+        test_bez_elevation(&Bez3o::new(0.0, 1.0, -1.0, 2.0));
+        test_bez_elevation(&Bez4o::new(0.0, 1.0, -1.0, 2.0, -2.0));
+        test_bez_elevation(&Bez5o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0));
+        test_bez_elevation(&Bez6o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0, -3.0));
     }
 
     #[test]
     fn nbez_elevation() {
-        let mut nbez_poly = NBezPoly::from_container(Vec::with_capacity(7));
+        let mut nbez_poly = NBez::from_container(Vec::with_capacity(7));
         nbez_poly.as_mut().push(0.0);
         nbez_poly.as_mut().push(1.0);
 
@@ -380,22 +380,22 @@ mod tests {
 
     #[test]
     fn bez_split() {
-        let bezpoly1o = BezPoly1o::new(0.0, 1.0);
-        test_bez_split(&bezpoly1o);
+        let bez1o = Bez1o::new(0.0, 1.0);
+        test_bez_split(&bez1o);
 
-        let bezpoly2o = BezPoly2o::new(0.0, 1.0, -1.0);
-        test_bez_split(&bezpoly2o);
+        let bez2o = Bez2o::new(0.0, 1.0, -1.0);
+        test_bez_split(&bez2o);
         
-        let bezpoly3o = BezPoly3o::new(0.0, 1.0, -1.0, 2.0);
-        test_bez_split(&bezpoly3o);
+        let bez3o = Bez3o::new(0.0, 1.0, -1.0, 2.0);
+        test_bez_split(&bez3o);
         
-        let bezpoly4o = BezPoly4o::new(0.0, 1.0, -1.0, 2.0, -2.0);
-        test_bez_split(&bezpoly4o);
+        let bez4o = Bez4o::new(0.0, 1.0, -1.0, 2.0, -2.0);
+        test_bez_split(&bez4o);
         
-        let bezpoly5o = BezPoly5o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0);
-        test_bez_split(&bezpoly5o);
+        let bez5o = Bez5o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0);
+        test_bez_split(&bez5o);
         
-        let bezpoly6o = BezPoly6o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0, -3.0);
-        test_bez_split(&bezpoly6o);
+        let bez6o = Bez6o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0, -3.0);
+        test_bez_split(&bez6o);
     }
 }
