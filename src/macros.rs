@@ -219,7 +219,7 @@ macro_rules! n_bezier {
     } elevated $elevated:ident<$($est:ty),+>) => {
         #[derive(Debug, Clone, Copy)]
         #[doc=$doc]
-        pub struct $name<F = f32, P = $crate::Point2d<F>, V = $crate::Vector2d<F>>
+        pub struct $name<F, P = $crate::Point2d<F>, V = $crate::Vector2d<F>>
                 where F: $crate::traitdefs::Float,
                       P: $crate::traitdefs::Point<F, V>,
                       V: $crate::traitdefs::Vector<F> {
