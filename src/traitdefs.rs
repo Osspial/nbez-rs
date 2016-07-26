@@ -4,7 +4,7 @@ use num_traits::float;
 use num_traits::identities::Zero;
 use num_traits::cast::FromPrimitive;
 use std::fmt::Debug;
-use std::ops::{Add, Sub, Mul, Div, Neg};
+use std::ops::{Add, Sub, Mul, Div};
 
 pub trait Float: float::Float + FromPrimitive + Debug {}
 impl<F> Float for F where F: float::Float + FromPrimitive + Debug {}
@@ -14,7 +14,6 @@ pub trait PVOps<F>:
 		Sub<Self, Output = Self> +
 		Mul<F, Output = Self> +
 		Div<F, Output = Self> +
-		Neg<Output = Self> +
 		Zero
 
 		where Self: Sized,
@@ -26,7 +25,6 @@ impl<F: Float, PV> PVOps<F> for PV
 			Sub<PV, Output = PV> +
 			Mul<F, Output = PV> +
 			Div<F, Output = PV> +
-			Neg<Output = PV> +
 			Zero {}
 
 pub trait Point<F, V>: 
