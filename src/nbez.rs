@@ -1,4 +1,3 @@
-use traitdefs::{Float, Point, Vector};
 use std::convert::{AsRef, AsMut, From};
 use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
@@ -6,7 +5,7 @@ use std::fmt::{Debug, Formatter};
 use std::ops::Range;
 
 
-use super::{BezCurve, Point2d, Vector2d, lerp};
+use super::{BezCurve, Point2d, Vector2d, Float, Point, Vector, lerp};
 
 /// A struct that contains range information for slicing, used for slicing into the global factor
 /// vector. The reason this is used instead of stdlib's `Range` struct is that `Range` does not

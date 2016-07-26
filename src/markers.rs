@@ -1,5 +1,3 @@
-//! Various trait aliases to simplify generics in other modules. Every trait in this module is
-//! implemented for all possible valid types.
 use num_traits::float;
 use num_traits::identities::Zero;
 use num_traits::cast::FromPrimitive;
@@ -19,14 +17,6 @@ pub trait PVOps<F>:
 		where Self: Sized,
 			  F: Float {}
 
-impl<F: Float, PV> PVOps<F> for PV
-		where PV:			
-			Add<PV, Output = PV> +
-			Sub<PV, Output = PV> +
-			Mul<F, Output = PV> +
-			Div<F, Output = PV> +
-			Zero {}
-
 pub trait Point<F, V>: 
 		Into<V> +
 		Clone +
@@ -37,16 +27,15 @@ pub trait Point<F, V>:
 			  F: Float,
 			  V: Vector<F> {}
 
-impl<F, P, V> Point<F, V> for P 
-        where F: Float,
-        	  V: Vector<F>,
-              P: Into<V> + Clone + Copy + PVOps<F> {}
-
 pub trait Vector<F: Float>: 
 		Clone +
 		Copy +
 		PVOps<F> {}
 
-impl<F, V> Vector<F> for V 
-        where F: Float, 
-              V: Clone + Copy + PVOps<F> {}
+impl PVOps<f32> for f32 {}
+impl Point<f32, f32> for f32 {}
+impl Vector<f32> for f32 {}
+
+impl PVOps<f64> for f64 {}
+impl Point<f64, f64> for f64 {}
+impl Vector<f64> for f64 {}

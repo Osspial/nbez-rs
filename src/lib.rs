@@ -2,12 +2,13 @@ extern crate num_traits;
 
 #[macro_use]
 mod macros;
-pub mod traitdefs;
+
+mod markers;
+pub use markers::*;
 
 mod nbez;
 pub use nbez::*;
 
-use traitdefs::{Float, PVOps};
 use std::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
 
