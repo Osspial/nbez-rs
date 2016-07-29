@@ -82,6 +82,8 @@ macro_rules! n_pointvector {
         }
 
         impl<F: $crate::Float> $name<F> {
+            /// Convenience method for creating a new instance of this struct. Fields of this function
+            /// correspond to fields of the struct.
             pub fn new($($field: F),+) -> $name<F> {
                 $name {
                     $($field: $field),+
@@ -167,10 +169,12 @@ macro_rules! n_pointvector {
         n_pointvector!(struct $v_doc, $dims; $v_name {$($field: F),+} $p_name);
 
         impl<F: $crate::Float> $v_name<F> {
+            /// Get the length of this vector, with the Pythagorean theorem
             pub fn len(self) -> F {
                 ($(self.$field.powi(2) +)+ F::from_f32(0.0).unwrap()).sqrt()
             }
 
+            /// Return a vector that points in the same direction as `self`, but has a length of one.
             pub fn normalize(self) -> $v_name<F> {
                 self / self.len()
             }
@@ -237,6 +241,8 @@ macro_rules! n_bezier {
                 where F: $crate::Float,
                       P: $crate::Point<F, V>,
                       V: $crate::Vector<F> {
+            /// Create a new bezier curve, with each field of this function corresponding to the similarly-named
+            /// point on the curve.
             pub fn new($($field: P),+) -> $name<F, P, V> {
                 $name {
                     $($field: $field),+,
@@ -312,16 +318,16 @@ macro_rules! n_bezier {
                     self.$end])
             }
 
-            fn split(&self, t: F) -> Option<($name<F, P, V>, $name<F, P, V>)> {
+            fn split_unbounded(&self, t: F) -> ($name<F, P, V>, $name<F, P, V>) {
                 use $crate::lerp;
 
 
                 if $order == 1 {
                     let interp = lerp(self.$start, self.$end, t);
-                    Some((
+                    (
                         $name::from_slice([self.$start, interp].as_ref()).unwrap(),
                         $name::from_slice([interp, self.$end].as_ref()).unwrap()
-                    ))
+                    )
                 } else {
                     // `self`'s points as a slice
                     let pslice = self.as_ref();
@@ -387,10 +393,10 @@ macro_rules! n_bezier {
                     }
 
 
-                    Some((
+                    (
                         $name::from_slice(&points[..$order + 1]).expect("left poly fail"),
                         $name::from_slice(&points[$order..]).expect("right poly fail")
-                    ))
+                    )
                 }
             }
 

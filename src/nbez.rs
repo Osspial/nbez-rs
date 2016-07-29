@@ -213,6 +213,11 @@ impl<F, P, V, C> BezCurve<F> for NBez<F, P, V, C>
         None
     }
 
+    /// Currently non-functional; panics with unimplemented
+    fn split_unbounded(&self, _: F) -> (NBez<F, P, V, C>, NBez<F, P, V, C>) {
+        unimplemented!()
+    }
+
     fn order(&self) -> usize {
         self.points.as_ref().len()-1
     }

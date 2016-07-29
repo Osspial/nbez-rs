@@ -25,6 +25,7 @@ fn lerp<PV: PVOps<F>, F: Float>(a: PV, b: PV, factor: F) -> PV {
 include!(concat!(env!("OUT_DIR"), "/macro_invocs.rs"));
 
 impl<F: Float> Vector2d<F> {
+    /// Returns a vector perpendicular to `self`. Currently only implemented for 2-dimensional vectors.
     pub fn perp(self) -> Vector2d<F> {
         Vector2d {
             x: -self.y,
@@ -129,14 +130,21 @@ pub trait BezCurve<F: Float>
 
     /// Split the curve at the given `t`, bounded on `0.0` to `1.0` inclusive. Returns `None` if `t` is
     /// not within bounds.
-    fn split(&self, t: F) -> Option<(Self, Self)>;
+    fn split(&self, t: F) -> Option<(Self, Self)> {
+        check_t_bounds!(t);
+        Some(self.split_unbounded(t))
+    }
+
+    /// Split the curve with no range bounds
+    fn split_unbounded(&self, t: F) -> (Self, Self);
     
     /// Gets the order of the curve
     fn order(&self) -> usize;
 }
 
-/// Gets the statically-known order of the curve
+/// Trait to mark curves that have order known at compiletime.
 pub trait OrderStatic {
+    /// Gets the compiletime-known curve order.
     fn order_static() -> usize;
 }
 
