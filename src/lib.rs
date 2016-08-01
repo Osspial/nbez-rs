@@ -94,6 +94,59 @@ impl<'a, F, B> ExactSizeIterator for BezIter<'a, F, B>
         where F: Float,
               B: BezCurve<F> + OrderStatic {}
 
+pub struct InterpIter<'a, F, B>
+        where F: Float,
+              B: 'a + BezCurve<F> {
+    curve: &'a B,
+    /// Instead of storing t dirctly, we store t as an integer that is then divided by `samples` in
+    /// order to get the actual t. This is done to avoid floating-point precision errors. Initialized
+    /// to `0`.
+    t_nodiv: u32,
+    /// Like `t_nodiv`, but used as the upper bound for next_back. Initialized to `samples`'s integer
+    /// representation.
+    t_back_nodiv: u32,
+    /// The number of samples we are taking from the interpolated curve.
+    samples: F
+}
+
+impl<'a, F, B> Iterator for InterpIter<'a, F, B>
+        where F: Float,
+              B: BezCurve<F> {
+    type Item = B::Point;
+    fn next(&mut self) -> Option<B::Point> {
+        if self.t_nodiv <= self.t_back_nodiv {
+            let point = self.curve.interp(F::from_u32(self.t_nodiv).unwrap() / self.samples);
+            self.t_nodiv += 1;
+            point
+        } else {
+            None
+        }
+    }
+}
+
+impl<'a, F, B> DoubleEndedIterator for InterpIter<'a, F, B>
+        where F: Float,
+              B: BezCurve<F> {
+    fn next_back(&mut self) -> Option<B::Point> {
+        if self.t_nodiv <= self.t_back_nodiv {
+            let point = self.curve.interp(F::from_u32(self.t_back_nodiv).unwrap() / self.samples);
+
+            // Because `t_back_nodiv` is unsigned, we can't let it go below zero. So, this checks if
+            // `t_back_nodiv` is zero, and if it is set `t_nodiv` to 1, which causes any future calls
+            // to the iterator to properly return `None`
+            if 0 == self.t_back_nodiv {
+                self.t_nodiv = 1;
+            } else {
+                self.t_back_nodiv -= 1;
+            }
+
+            point
+        } else {
+            None
+        }
+    }
+}
+
 
 /// Bezier curve trait
 pub trait BezCurve<F: Float>: AsRef<[<Self as BezCurve<F>>::Point]> + AsMut<[<Self as BezCurve<F>>::Point]>
@@ -139,6 +192,15 @@ pub trait BezCurve<F: Float>: AsRef<[<Self as BezCurve<F>>::Point]> + AsMut<[<Se
     
     /// Gets the order of the curve
     fn order(&self) -> usize;
+
+    fn interp_iter<'a>(&'a self, samples: u32) -> InterpIter<'a, F, Self> {
+        InterpIter {
+            curve: self,
+            t_nodiv: 0,
+            t_back_nodiv: samples,
+            samples: F::from_u32(samples).unwrap()
+        }
+    }
 }
 
 /// Trait to mark curves that have order known at compiletime.
@@ -405,5 +467,44 @@ mod tests {
         
         let bez6o = Bez6o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0, -3.0);
         test_bez_split(&bez6o);
+    }
+
+    fn test_interp_iter<B>(curve: &B)
+            where B: BezCurve<f64, Point = f64> {
+
+        const SAMPLES: u32 = 30;
+        let mut iter = curve.interp_iter(SAMPLES);
+
+        for i in 0..SAMPLES + 1{
+            assert_eq!(curve.interp(i as f64 / SAMPLES as f64), iter.next());
+        }
+        assert_eq!(None, iter.next());
+
+        let mut iter_back = curve.interp_iter(SAMPLES);
+        for i in (0..SAMPLES + 1).into_iter().map(|i| SAMPLES - i) {
+            assert_eq!(curve.interp(i as f64 / SAMPLES as f64), iter_back.next_back());
+        }
+        assert_eq!(None, iter_back.next_back());
+    }
+
+    #[test]
+    fn interp_iter() {
+        let bez1o = Bez1o::new(0.0, 1.0);
+        test_interp_iter(&bez1o);
+
+        let bez2o = Bez2o::new(0.0, 1.0, -1.0);
+        test_interp_iter(&bez2o);
+        
+        let bez3o = Bez3o::new(0.0, 1.0, -1.0, 2.0);
+        test_interp_iter(&bez3o);
+        
+        let bez4o = Bez4o::new(0.0, 1.0, -1.0, 2.0, -2.0);
+        test_interp_iter(&bez4o);
+        
+        let bez5o = Bez5o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0);
+        test_interp_iter(&bez5o);
+        
+        let bez6o = Bez6o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0, -3.0);
+        test_interp_iter(&bez6o);
     }
 }
