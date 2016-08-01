@@ -98,8 +98,8 @@ impl<'a, F, B> ExactSizeIterator for BezIter<'a, F, B>
 /// Bezier curve trait
 pub trait BezCurve<F: Float> 
         where Self: Sized {
-    type Point;
-    type Vector;
+    type Point: Point<F, Self::Vector>;
+    type Vector: Vector<F>;
     type Elevated: BezCurve<F, Point = Self::Point, Vector = Self::Vector>;
 
     /// Attempt to create a curve from a slice. Fails if the slice's length does not match the
@@ -255,8 +255,8 @@ mod tests {
     use super::*;
 
     fn test_poly_eq<B1, B2>(nbez_poly: &B1, bez_poly: &B2)
-            where B1: BezCurve<f64, Point = f64>,
-                  B2: BezCurve<f64, Point = f64> {
+            where B1: BezCurve<f64, Point = f64, Vector = f64>,
+                  B2: BezCurve<f64, Point = f64, Vector = f64> {
         let mut t = 0.0;
         while t <= 1.0 {
             // Assert that values are equal within a tolerance.
@@ -266,8 +266,8 @@ mod tests {
     }
 
     fn test_poly_slope_eq<B1, B2>(nbez_poly: &B1, bez_poly: &B2) 
-            where B1: BezCurve<f64, Vector = f64>, 
-                  B2: BezCurve<f64, Vector = f64> {
+            where B1: BezCurve<f64, Point = f64, Vector = f64>,
+                  B2: BezCurve<f64, Point = f64, Vector = f64> {
         let mut t = 0.0;
         while t <= 1.0 {
             // Ditto.
