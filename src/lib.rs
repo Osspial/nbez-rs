@@ -96,7 +96,7 @@ impl<'a, F, B> ExactSizeIterator for BezIter<'a, F, B>
 
 
 /// Bezier curve trait
-pub trait BezCurve<F: Float> 
+pub trait BezCurve<F: Float>: AsRef<[<Self as BezCurve<F>>::Point]> + AsMut<[<Self as BezCurve<F>>::Point]>
         where Self: Sized {
     type Point: Point<F>;
     type Elevated: BezCurve<F, Point = Self::Point>;
