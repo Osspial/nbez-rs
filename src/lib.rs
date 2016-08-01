@@ -122,6 +122,16 @@ impl<'a, F, B> Iterator for InterpIter<'a, F, B>
             None
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let size = if self.t_back_nodiv < self.t_nodiv {
+            0
+        } else {
+            self.t_back_nodiv - self.t_nodiv + 1
+        } as usize;
+
+        (size, Some(size))
+    }
 }
 
 impl<'a, F, B> DoubleEndedIterator for InterpIter<'a, F, B>
@@ -147,6 +157,9 @@ impl<'a, F, B> DoubleEndedIterator for InterpIter<'a, F, B>
     }
 }
 
+impl<'a, F, B> ExactSizeIterator for InterpIter<'a, F, B>
+        where F: Float,
+              B: BezCurve<F> {}
 
 /// Bezier curve trait
 pub trait BezCurve<F: Float>: AsRef<[<Self as BezCurve<F>>::Point]> + AsMut<[<Self as BezCurve<F>>::Point]>
