@@ -5,7 +5,7 @@ use std::fmt::{Debug, Formatter};
 use std::ops::Range;
 
 
-use super::{BezCurve, Point2d, Vector2d, Float, Point, Vector, lerp};
+use super::{BezCurve, Point2d, Float, Point, lerp};
 
 /// A struct that contains range information for slicing, used for slicing into the global factor
 /// vector. The reason this is used instead of stdlib's `Range` struct is that `Range` does not
@@ -83,35 +83,32 @@ fn update_factors(order: usize, factors: &Cell<RangeSlice>, dfactors: &Cell<Rang
 
 /// An n-order bezier curve
 #[derive(Clone)]
-pub struct NBez<F, P = Point2d<F>, V = Vector2d<F>, C = Vec<P>> 
+pub struct NBez<F, P = Point2d<F>, C = Vec<P>> 
         where F: Float,
-              P: Point<F, V>,
-              V: Vector<F>,
+              P: Point<F>,
               C: AsRef<[P]> + AsMut<[P]> {
     points: C,
     factor_vec: RefCell<Vec<u64>>,
     factors: Cell<RangeSlice>,
     dfactors: Cell<RangeSlice>,
-    phantom: PhantomData<(F, P, V)>
+    phantom: PhantomData<(F, P)>
 }
 
-impl<F, P, V, C> From<C> for NBez<F, P, V, C>
+impl<F, P, C> From<C> for NBez<F, P, C>
         where F: Float,
-              P: Point<F, V>,
-              V: Vector<F>,
+              P: Point<F>,
               C: AsRef<[P]> + AsMut<[P]> {
-    fn from(container: C) -> NBez<F, P, V, C> {
+    fn from(container: C) -> NBez<F, P, C> {
         NBez::from_container(container)
     }
 }
 
-impl<F, P, V, C> NBez<F, P, V, C>
+impl<F, P, C> NBez<F, P, C>
         where F: Float,
-              P: Point<F, V>,
-              V: Vector<F>,
+              P: Point<F>,
               C: AsRef<[P]> + AsMut<[P]> {
     #[inline]
-    pub fn from_container(points: C) -> NBez<F, P, V, C> {
+    pub fn from_container(points: C) -> NBez<F, P, C> {
         if points.as_ref().len() >= 22 {
             panic!("Cannot create Bézier polynomials with an order >= 21")
         }
@@ -131,17 +128,16 @@ impl<F, P, V, C> NBez<F, P, V, C>
     }
 }
 
-impl<F, P, V, C> BezCurve<F> for NBez<F, P, V, C> 
+impl<F, P, C> BezCurve<F> for NBez<F, P, C> 
         where F: Float,
-              P: Point<F, V>,
-              V: Vector<F>,
+              P: Point<F>,
               C: AsRef<[P]> + AsMut<[P]> {
     type Point = P;
-    type Vector = V;
-    type Elevated = NBez<F, P, V, Vec<P>>;
+    type Vector = P::Vector;
+    type Elevated = NBez<F, P, Vec<P>>;
 
     /// Currently non-functional; returns `None`
-    fn from_slice(_: &[P]) -> Option<NBez<F, P, V, C>> {
+    fn from_slice(_: &[P]) -> Option<NBez<F, P, C>> {
         None
     }
 
@@ -166,7 +162,7 @@ impl<F, P, V, C> BezCurve<F> for NBez<F, P, V, C>
         acc
     }
 
-    fn slope_unbounded(&self, t: F) -> V {
+    fn slope_unbounded(&self, t: F) -> P::Vector {
         let points = self.points.as_ref();
         update_factors(self.order(), &self.factors, &self.dfactors, &self.factor_vec);
         let dfactors = &self.factor_vec.borrow()[self.dfactors.get().as_range()];
@@ -188,7 +184,7 @@ impl<F, P, V, C> BezCurve<F> for NBez<F, P, V, C>
         acc.into()
     }
 
-    fn elevate(&self) -> NBez<F, P, V, Vec<P>> {        
+    fn elevate(&self) -> NBez<F, P, Vec<P>> {        
         let points = self.points.as_ref();
         let order = self.order() + 1;
         let order_f = F::from_usize(order).unwrap();
@@ -209,12 +205,12 @@ impl<F, P, V, C> BezCurve<F> for NBez<F, P, V, C>
     }
 
     /// Currently non-functional; returns `None`
-    fn split(&self, _: F) -> Option<(NBez<F, P, V, C>, NBez<F, P, V, C>)> {
+    fn split(&self, _: F) -> Option<(NBez<F, P, C>, NBez<F, P, C>)> {
         None
     }
 
     /// Currently non-functional; panics with unimplemented
-    fn split_unbounded(&self, _: F) -> (NBez<F, P, V, C>, NBez<F, P, V, C>) {
+    fn split_unbounded(&self, _: F) -> (NBez<F, P, C>, NBez<F, P, C>) {
         unimplemented!()
     }
 
@@ -223,50 +219,45 @@ impl<F, P, V, C> BezCurve<F> for NBez<F, P, V, C>
     }
 }
 
-impl<F, P, V, C> AsRef<C> for NBez<F, P, V, C>
+impl<F, P, C> AsRef<C> for NBez<F, P, C>
         where F: Float,
-              P: Point<F, V>,
-              V: Vector<F>,
+              P: Point<F>,
               C: AsRef<[P]> + AsMut<[P]> {
     fn as_ref(&self) -> &C {
         &self.points
     }
 }
 
-impl<F, P, V, C> AsMut<C> for NBez<F, P, V, C>
+impl<F, P, C> AsMut<C> for NBez<F, P, C>
         where F: Float,
-              P: Point<F, V>,
-              V: Vector<F>,
+              P: Point<F>,
               C: AsRef<[P]> + AsMut<[P]> {
     fn as_mut(&mut self) -> &mut C {
         &mut self.points
     }
 }
 
-impl<F, P, V, C> AsRef<[P]> for NBez<F, P, V, C>
+impl<F, P, C> AsRef<[P]> for NBez<F, P, C>
         where F: Float,
-              P: Point<F, V>,
-              V: Vector<F>,
+              P: Point<F>,
               C: AsRef<[P]> + AsMut<[P]> {
     fn as_ref(&self) -> &[P] {
         self.points.as_ref()
     }
 }
 
-impl<F, P, V, C> AsMut<[P]> for NBez<F, P, V, C>
+impl<F, P, C> AsMut<[P]> for NBez<F, P, C>
         where F: Float,
-              P: Point<F, V>,
-              V: Vector<F>,
+              P: Point<F>,
               C: AsRef<[P]> + AsMut<[P]> {
     fn as_mut(&mut self) -> &mut [P] {
         self.points.as_mut()
     }
 }
 
-impl<F, P, V, C> Debug for NBez<F, P, V, C>
+impl<F, P, C> Debug for NBez<F, P, C>
         where F: Float,
-              P: Point<F, V>,
-              V: Vector<F>,
+              P: Point<F>,
               C: AsRef<[P]> + AsMut<[P]> + Debug {
     fn fmt(&self, f: &mut Formatter) -> Result<(), ::std::fmt::Error> {
         f.debug_tuple("NBez")

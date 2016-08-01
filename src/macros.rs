@@ -181,7 +181,9 @@ macro_rules! n_pointvector {
         }
 
         impl<F: Float> PVOps<F> for $p_name<F> {}
-        impl<F: Float> Point<F, $v_name<F>> for $p_name<F> {}
+        impl<F: Float> Point<F> for $p_name<F> {
+            type Vector = $v_name<F>;
+        }
 
         impl<F: Float> PVOps<F> for $v_name<F> {}
         impl<F: Float> Vector<F> for $v_name<F> {}
@@ -229,21 +231,19 @@ macro_rules! n_bezier {
     } elevated $elevated:ident<$($est:ty),+>) => {
         #[derive(Debug, Clone, Copy)]
         #[doc=$doc]
-        pub struct $name<F, P = $crate::Point2d<F>, V = $crate::Vector2d<F>>
+        pub struct $name<F, P = $crate::Point2d<F>>
                 where F: $crate::Float,
-                      P: $crate::Point<F, V>,
-                      V: $crate::Vector<F> {
+                      P: $crate::Point<F> {
             $(pub $field: P),+,
-            __marker: std::marker::PhantomData<(V, F)>
+            __marker: std::marker::PhantomData<F>
         }
 
-        impl<F, P, V> $name<F, P, V>
+        impl<F, P> $name<F, P>
                 where F: $crate::Float,
-                      P: $crate::Point<F, V>,
-                      V: $crate::Vector<F> {
+                      P: $crate::Point<F> {
             /// Create a new bezier curve, with each field of this function corresponding to the similarly-named
             /// point on the curve.
-            pub fn new($($field: P),+) -> $name<F, P, V> {
+            pub fn new($($field: P),+) -> $name<F, P> {
                 $name {
                     $($field: $field),+,
                     __marker: std::marker::PhantomData
@@ -251,17 +251,16 @@ macro_rules! n_bezier {
             }
         }
 
-        impl<F, P, V> $crate::BezCurve<F> for $name<F, P, V>
-                where P: $crate::Point<F, V>,
-                      V: $crate::Vector<F>,
+        impl<F, P> $crate::BezCurve<F> for $name<F, P>
+                where P: $crate::Point<F>,
                       F: $crate::Float {
             type Point = P;
-            type Vector = V;
+            type Vector = P::Vector;
             type Elevated = $elevated<$($est),+>;
 
-            fn from_slice(slice: &[P]) -> Option<$name<F, P, V>> {
+            fn from_slice(slice: &[P]) -> Option<$name<F, P>> {
                 use $crate::OrderStatic;
-                if slice.len() - 1 != $name::<F, P, V>::order_static() {
+                if slice.len() - 1 != $name::<F, P>::order_static() {
                     None
                 } else {
                     let mut index = -1;
@@ -289,7 +288,7 @@ macro_rules! n_bezier {
                 $($field +)+ P::zero()
             }
 
-            fn slope_unbounded(&self, t: F) -> V {
+            fn slope_unbounded(&self, t: F) -> P::Vector {
                 let t1 = F::from_f32(1.0).unwrap() - t;
                 const COUNT: i32 = $order - 1;
                 let mut factor = COUNT + 1;
@@ -318,7 +317,7 @@ macro_rules! n_bezier {
                     self.$end])
             }
 
-            fn split_unbounded(&self, t: F) -> ($name<F, P, V>, $name<F, P, V>) {
+            fn split_unbounded(&self, t: F) -> ($name<F, P>, $name<F, P>) {
                 use $crate::lerp;
 
 
@@ -402,50 +401,46 @@ macro_rules! n_bezier {
 
             fn order(&self) -> usize {
                 use $crate::OrderStatic;
-                $name::<F, P, V>::order_static()
+                $name::<F, P>::order_static()
             }
         }
 
-        impl<F, P, V> $crate::OrderStatic for $name<F, P, V> 
+        impl<F, P> $crate::OrderStatic for $name<F, P> 
                 where F: $crate::Float,
-                      P: $crate::Point<F, V>,
-                      V: $crate::Vector<F> {
+                      P: $crate::Point<F> {
             #[inline]
             fn order_static() -> usize {
                 $order
             }
         }
 
-        impl<F, P, V> ::std::convert::From<[P; $order + 1]> for $name<F, P, V> 
+        impl<F, P> ::std::convert::From<[P; $order + 1]> for $name<F, P> 
                 where F: $crate::Float,
-                      P: $crate::Point<F, V>,
-                      V: $crate::Vector<F> {
-            fn from(array: [P; $order + 1]) -> $name<F, P, V> {
+                      P: $crate::Point<F> {
+            fn from(array: [P; $order + 1]) -> $name<F, P> {
                 use $crate::BezCurve;
                 $name::from_slice(&array[..]).unwrap()
             }
         }
 
-        impl<F, P, V> ::std::convert::AsRef<[P]> for $name<F, P, V> 
+        impl<F, P> ::std::convert::AsRef<[P]> for $name<F, P> 
                 where F: $crate::Float,
-                      P: $crate::Point<F, V>,
-                      V: $crate::Vector<F> {
+                      P: $crate::Point<F> {
             fn as_ref(&self) -> &[P] {
                 use std::slice;
                 unsafe {
-                    slice::from_raw_parts(self as *const $name<F, P, V> as *const P, $order + 1)
+                    slice::from_raw_parts(self as *const $name<F, P> as *const P, $order + 1)
                 }
             }
         }
 
-        impl<F, P, V> ::std::convert::AsMut<[P]> for $name<F, P, V> 
+        impl<F, P> ::std::convert::AsMut<[P]> for $name<F, P> 
                 where F: $crate::Float,
-                      P: $crate::Point<F, V>,
-                      V: $crate::Vector<F> {
+                      P: $crate::Point<F> {
             fn as_mut(&mut self) -> &mut [P] {
                 use std::slice;
                 unsafe {
-                    slice::from_raw_parts_mut(self as *mut $name<F, P, V> as *mut P, $order + 1)
+                    slice::from_raw_parts_mut(self as *mut $name<F, P> as *mut P, $order + 1)
                 }
             }
         }

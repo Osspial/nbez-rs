@@ -98,7 +98,7 @@ impl<'a, F, B> ExactSizeIterator for BezIter<'a, F, B>
 /// Bezier curve trait
 pub trait BezCurve<F: Float> 
         where Self: Sized {
-    type Point: Point<F, Self::Vector>;
+    type Point: Point<F>;
     type Vector: Vector<F>;
     type Elevated: BezCurve<F, Point = Self::Point, Vector = Self::Vector>;
 
@@ -278,35 +278,35 @@ mod tests {
 
     #[test]
     fn bez_poly_equiviliance() {
-        let mut nbez_poly = NBez::from_container(Vec::with_capacity(7));
-        nbez_poly.as_mut().push(0.0);
-        nbez_poly.as_mut().push(1.0);
+        let mut nbez_poly: NBez<f64, f64, Vec<f64>> = NBez::from_container(Vec::with_capacity(7));
+        (nbez_poly.as_mut() as &mut Vec<f64>).push(0.0);
+        (nbez_poly.as_mut() as &mut Vec<f64>).push(1.0);
 
         let bez1o = Bez1o::new(0.0, 1.0);
         test_poly_eq(&nbez_poly, &bez1o);
         test_poly_slope_eq(&nbez_poly, &bez1o);
 
-        nbez_poly.as_mut().push(-1.0);
+        (nbez_poly.as_mut() as &mut Vec<f64>).push(-1.0);
         let bez2o = Bez2o::new(0.0, 1.0, -1.0);
         test_poly_eq(&nbez_poly, &bez2o);
         test_poly_slope_eq(&nbez_poly, &bez2o);
         
-        nbez_poly.as_mut().push(2.0);
+        (nbez_poly.as_mut() as &mut Vec<f64>).push(2.0);
         let bez3o = Bez3o::new(0.0, 1.0, -1.0, 2.0);
         test_poly_eq(&nbez_poly, &bez3o);
         test_poly_slope_eq(&nbez_poly, &bez3o);
         
-        nbez_poly.as_mut().push(-2.0);
+        (nbez_poly.as_mut() as &mut Vec<f64>).push(-2.0);
         let bez4o = Bez4o::new(0.0, 1.0, -1.0, 2.0, -2.0);
         test_poly_eq(&nbez_poly, &bez4o);
         test_poly_slope_eq(&nbez_poly, &bez4o);
         
-        nbez_poly.as_mut().push(3.0);
+        (nbez_poly.as_mut() as &mut Vec<f64>).push(3.0);
         let bez5o = Bez5o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0);
         test_poly_eq(&nbez_poly, &bez5o);
         test_poly_slope_eq(&nbez_poly, &bez5o);
         
-        nbez_poly.as_mut().push(-3.0);
+        (nbez_poly.as_mut() as &mut Vec<f64>).push(-3.0);
         let bez6o = Bez6o::new(0.0, 1.0, -1.0, 2.0, -2.0, 3.0, -3.0);
         test_poly_eq(&nbez_poly, &bez6o);
         test_poly_slope_eq(&nbez_poly, &bez6o);
@@ -333,24 +333,24 @@ mod tests {
     #[test]
     fn nbez_elevation() {
         let mut nbez_poly = NBez::from_container(Vec::with_capacity(7));
-        nbez_poly.as_mut().push(0.0);
-        nbez_poly.as_mut().push(1.0);
+        (nbez_poly.as_mut() as &mut Vec<f64>).push(0.0);
+        (nbez_poly.as_mut() as &mut Vec<f64>).push(1.0);
 
         test_bez_elevation(&nbez_poly);
 
-        nbez_poly.as_mut().push(-1.0);
+        (nbez_poly.as_mut() as &mut Vec<f64>).push(-1.0);
         test_bez_elevation(&nbez_poly);
         
-        nbez_poly.as_mut().push(2.0);
+        (nbez_poly.as_mut() as &mut Vec<f64>).push(2.0);
         test_bez_elevation(&nbez_poly);
         
-        nbez_poly.as_mut().push(-2.0);
+        (nbez_poly.as_mut() as &mut Vec<f64>).push(-2.0);
         test_bez_elevation(&nbez_poly);
         
-        nbez_poly.as_mut().push(3.0);
+        (nbez_poly.as_mut() as &mut Vec<f64>).push(3.0);
         test_bez_elevation(&nbez_poly);
         
-        nbez_poly.as_mut().push(-3.0);
+        (nbez_poly.as_mut() as &mut Vec<f64>).push(-3.0);
         test_bez_elevation(&nbez_poly);
     }
 

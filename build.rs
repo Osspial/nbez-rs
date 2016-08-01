@@ -65,9 +65,9 @@ fn main() {
         writeln!(file, "    {};", get_param_name(order, order)).unwrap();
 
         if order == MAX_ORDER {
-            writeln!(file, "}} elevated NBez<F, P, V, [P; {}]> }}", order + 2).unwrap();
+            writeln!(file, "}} elevated NBez<F, P, [P; {}]> }}", order + 2).unwrap();
         } else {
-            writeln!(file, "}} elevated Bez{}o<F, P, V> }}", order + 1).unwrap();
+            writeln!(file, "}} elevated Bez{}o<F, P> }}", order + 1).unwrap();
         }
     }
 }

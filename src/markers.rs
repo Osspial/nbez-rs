@@ -17,15 +17,16 @@ pub trait PVOps<F>:
 		where Self: Sized,
 			  F: Float {}
 
-pub trait Point<F, V>: 
-		Into<V> +
+pub trait Point<F>: 
+		Into<<Self as Point<F>>::Vector> +
 		Clone +
 		Copy + 
 		PVOps<F>
 
 		where Self: Sized,
-			  F: Float,
-			  V: Vector<F> {}
+			  F: Float {
+	type Vector: Vector<F>;
+}
 
 pub trait Vector<F: Float>: 
 		Clone +
@@ -33,9 +34,13 @@ pub trait Vector<F: Float>:
 		PVOps<F> {}
 
 impl PVOps<f32> for f32 {}
-impl Point<f32, f32> for f32 {}
+impl Point<f32> for f32 {
+	type Vector = f32;
+}
 impl Vector<f32> for f32 {}
 
 impl PVOps<f64> for f64 {}
-impl Point<f64, f64> for f64 {}
+impl Point<f64> for f64 {
+	type Vector = f64;
+}
 impl Vector<f64> for f64 {}
