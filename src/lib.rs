@@ -99,8 +99,7 @@ impl<'a, F, B> ExactSizeIterator for BezIter<'a, F, B>
 pub trait BezCurve<F: Float> 
         where Self: Sized {
     type Point: Point<F>;
-    type Vector: Vector<F>;
-    type Elevated: BezCurve<F, Point = Self::Point, Vector = Self::Vector>;
+    type Elevated: BezCurve<F, Point = Self::Point>;
 
     /// Attempt to create a curve from a slice. Fails if the slice's length does not match the
     /// curve's order + 1.
@@ -117,12 +116,12 @@ pub trait BezCurve<F: Float>
 
     /// Get the slope for the given `t`, bounded on `0.0` to `1.0` inclusive. Returns `None` if
     /// `t` is not within bounds.
-    fn slope(&self, t: F) -> Option<Self::Vector> {
+    fn slope(&self, t: F) -> Option<<Self::Point as Point<F>>::Vector> {
         check_t_bounds!(t);
         Some(self.slope_unbounded(t))
     }
     /// Get the slope for the given `t` with no range bounds
-    fn slope_unbounded(&self, t: F) -> Self::Vector;
+    fn slope_unbounded(&self, t: F) -> <Self::Point as Point<F>>::Vector;
 
     /// Elevate the curve order, getting a curve that is one order higher but gives the same results
     /// upon interpolation
@@ -255,8 +254,8 @@ mod tests {
     use super::*;
 
     fn test_poly_eq<B1, B2>(nbez_poly: &B1, bez_poly: &B2)
-            where B1: BezCurve<f64, Point = f64, Vector = f64>,
-                  B2: BezCurve<f64, Point = f64, Vector = f64> {
+            where B1: BezCurve<f64, Point = f64>,
+                  B2: BezCurve<f64, Point = f64> {
         let mut t = 0.0;
         while t <= 1.0 {
             // Assert that values are equal within a tolerance.
@@ -266,8 +265,8 @@ mod tests {
     }
 
     fn test_poly_slope_eq<B1, B2>(nbez_poly: &B1, bez_poly: &B2) 
-            where B1: BezCurve<f64, Point = f64, Vector = f64>,
-                  B2: BezCurve<f64, Point = f64, Vector = f64> {
+            where B1: BezCurve<f64, Point = f64>,
+                  B2: BezCurve<f64, Point = f64> {
         let mut t = 0.0;
         while t <= 1.0 {
             // Ditto.
@@ -313,7 +312,7 @@ mod tests {
     }
 
     fn test_bez_elevation<B>(curve: &B)
-            where B: BezCurve<f64, Point = f64, Vector = f64> {
+            where B: BezCurve<f64, Point = f64> {
         
         let elevated = curve.elevate();
         test_poly_eq(curve, &elevated);
@@ -355,7 +354,7 @@ mod tests {
     }
 
     fn test_bez_split<B>(curve: &B)
-            where B: BezCurve<f64, Point = f64, Vector = f64> {
+            where B: BezCurve<f64, Point = f64> {
 
         // Sanity check bool to make sure the assertions are actually running
         let mut has_run = false;

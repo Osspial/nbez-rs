@@ -255,7 +255,6 @@ macro_rules! n_bezier {
                 where P: $crate::Point<F>,
                       F: $crate::Float {
             type Point = P;
-            type Vector = P::Vector;
             type Elevated = $elevated<$($est),+>;
 
             fn from_slice(slice: &[P]) -> Option<$name<F, P>> {

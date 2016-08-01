@@ -133,7 +133,6 @@ impl<F, P, C> BezCurve<F> for NBez<F, P, C>
               P: Point<F>,
               C: AsRef<[P]> + AsMut<[P]> {
     type Point = P;
-    type Vector = P::Vector;
     type Elevated = NBez<F, P, Vec<P>>;
 
     /// Currently non-functional; returns `None`
