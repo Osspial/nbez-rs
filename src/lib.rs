@@ -1,3 +1,6 @@
+//! A crate that provides generic bezier curves of varying order and dimensionality, including numerous
+//! stack-allocated curves and an (admittedly not entirely functional) n-order curve.
+
 extern crate num_traits;
 
 #[macro_use]
@@ -172,8 +175,8 @@ pub trait BezCurve<F: Float>: AsRef<[<Self as BezCurve<F>>::Point]> + AsMut<[<Se
     /// curve's order + 1.
     fn from_slice(&[Self::Point]) -> Option<Self>;
 
-    /// Perform interpolation on the curve for a value of `t` from `0.0` to `1.0` inclusive. Returns `None`
-    /// if `t` is outside of that range.
+    /// Perform interpolation on the curve for the given `t`, bounded on `0.0` to `1.0` inclusive. 
+    /// Returns `None` if `t` is not within bounds.
     fn interp(&self, t: F) -> Option<Self::Point> {
         check_t_bounds!(t);
         Some(self.interp_unbounded(t))
@@ -207,6 +210,8 @@ pub trait BezCurve<F: Float>: AsRef<[<Self as BezCurve<F>>::Point]> + AsMut<[<Se
     /// Gets the order of the curve
     fn order(&self) -> usize;
 
+    /// Get an iterator over the interpolated values of this curve, splitting the curve into the given
+    /// number of samples.
     fn interp_iter<'a>(&'a self, samples: u32) -> InterpIter<'a, F, Self> {
         InterpIter {
             curve: self,

@@ -81,7 +81,7 @@ fn update_factors(order: usize, factors: &Cell<RangeSlice>, dfactors: &Cell<Rang
 }
 
 
-/// An n-order bezier curve
+/// An n-order bezier curve. The `from_slice`, `split`, and `split_unbounded` functions currently do not work.
 #[derive(Clone)]
 pub struct NBez<F, P = Point2d<F>, C = Vec<P>> 
         where F: Float,
