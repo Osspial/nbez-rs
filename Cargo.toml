@@ -4,6 +4,16 @@ version = "0.1.0"
 authors = ["Osspial <osspial@gmail.com>"]
 build = "build.rs"
 
+description = "An n-dimensional/n-order Bézier curve library"
+documentation = "http://osspial.github.io/nbez-rs/nbez/index.html"
+repository = "https://github.com/Osspial/nbez-rs"
+
+readme = "./README.md"
+keywords = ["bezier", "curve", "spline"]
+
+license = "Apache-2.0"
+
+
 [dependencies]
 num-traits = "0.1"
 
