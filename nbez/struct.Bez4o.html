@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Bez4o` struct in crate `nbez`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Bez4o">
+
+    <title>nbez::Bez4o - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>nbez</a></p><script>window.sidebarCurrent = {name: 'Bez4o', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>nbez</a>::<wbr><a class='struct' href=''>Bez4o</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-2023' class='srclink' href='../src/nbez/src/macros.rs.html#234-239' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Bez4o&lt;F,&nbsp;P&nbsp;=&nbsp;<a class='struct' href='../nbez/struct.Point2d.html' title='nbez::Point2d'>Point2d</a>&lt;F&gt;&gt; <span class='where'>where F: <a class='trait' href='../nbez/trait.Float.html' title='nbez::Float'>Float</a>, P: <a class='trait' href='../nbez/trait.Point.html' title='nbez::Point'>Point</a>&lt;F&gt;</span> {
+    pub start: P,
+    pub ctrl0: P,
+    pub ctrl1: P,
+    pub ctrl2: P,
+    pub end: P,
+    // some fields omitted
+}</pre><div class='docblock'><p>Order 4 bezier curve</p>
+</div><h2 class='fields'>Fields</h2><span id='structfield.start' class='structfield'><code>start: P</code>
+                           </span><span class='stab '></span><span id='structfield.ctrl0' class='structfield'><code>ctrl0: P</code>
+                           </span><span class='stab '></span><span id='structfield.ctrl1' class='structfield'><code>ctrl1: P</code>
+                           </span><span class='stab '></span><span id='structfield.ctrl2' class='structfield'><code>ctrl2: P</code>
+                           </span><span class='stab '></span><span id='structfield.end' class='structfield'><code>end: P</code>
+                           </span><span class='stab '></span><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;F,&nbsp;P&gt; <a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt; <span class='where'>where F: <a class='trait' href='../nbez/trait.Float.html' title='nbez::Float'>Float</a>, P: <a class='trait' href='../nbez/trait.Point.html' title='nbez::Point'>Point</a>&lt;F&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-2032' class='srclink' href='../src/nbez/src/macros.rs.html#241-252' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(start: P, ctrl0: P, ctrl1: P, ctrl2: P, end: P) -&gt; <a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt;</code></h4>
+<div class='docblock'><p>Create a new bezier curve, with each field of this function corresponding to the similarly-named
+point on the curve.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;F:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a>,&nbsp;P:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a> for <a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt; <span class='where'>where F: <a class='trait' href='../nbez/trait.Float.html' title='nbez::Float'>Float</a>, P: <a class='trait' href='../nbez/trait.Point.html' title='nbez::Point'>Point</a>&lt;F&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1996' class='srclink' href='../src/nbez/src/macros.rs.html#232' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'></div><h3 class='impl'><span class='in-band'><code>impl&lt;F:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a>,&nbsp;P:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt; <span class='where'>where F: <a class='trait' href='../nbez/trait.Float.html' title='nbez::Float'>Float</a>, P: <a class='trait' href='../nbez/trait.Point.html' title='nbez::Point'>Point</a>&lt;F&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1999' class='srclink' href='../src/nbez/src/macros.rs.html#232' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt;</code></h4>
+<div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
+</div><h4 id='method.clone_from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;F:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a>,&nbsp;P:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt; <span class='where'>where F: <a class='trait' href='../nbez/trait.Float.html' title='nbez::Float'>Float</a>, P: <a class='trait' href='../nbez/trait.Point.html' title='nbez::Point'>Point</a>&lt;F&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-2010' class='srclink' href='../src/nbez/src/macros.rs.html#232' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;F,&nbsp;P&gt; <a class='trait' href='../nbez/trait.BezCurve.html' title='nbez::BezCurve'>BezCurve</a>&lt;F&gt; for <a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt; <span class='where'>where P: <a class='trait' href='../nbez/trait.Point.html' title='nbez::Point'>Point</a>&lt;F&gt;, F: <a class='trait' href='../nbez/trait.Float.html' title='nbez::Float'>Float</a></span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-2041' class='srclink' href='../src/nbez/src/macros.rs.html#254-405' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Point' class='type'><code>type <a href='../nbez/trait.BezCurve.html#associatedtype.Point' class='type'>Point</a> = P</code></h4>
+<h4 id='associatedtype.Elevated' class='type'><code>type <a href='../nbez/trait.BezCurve.html#associatedtype.Elevated' class='type'>Elevated</a> = <a class='struct' href='../nbez/struct.Bez5o.html' title='nbez::Bez5o'>Bez5o</a>&lt;F,&nbsp;P&gt;</code></h4>
+<h4 id='method.from_slice' class='method'><code>fn <a href='../nbez/trait.BezCurve.html#tymethod.from_slice' class='fnname'>from_slice</a>(slice: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a>P<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt;&gt;</code></h4>
+<div class='docblock'><p>Attempt to create a curve from a slice. Fails if the slice&#39;s length does not match the curve&#39;s order + 1. <a href="../nbez/trait.BezCurve.html#tymethod.from_slice">Read more</a></p>
+</div><h4 id='method.interp_unbounded' class='method'><code>fn <a href='../nbez/trait.BezCurve.html#tymethod.interp_unbounded' class='fnname'>interp_unbounded</a>(&amp;self, t: F) -&gt; P</code></h4>
+<div class='docblock'><p>Perform interpolation on the curve with no range bounds</p>
+</div><h4 id='method.slope_unbounded' class='method'><code>fn <a href='../nbez/trait.BezCurve.html#tymethod.slope_unbounded' class='fnname'>slope_unbounded</a>(&amp;self, t: F) -&gt; P::Vector</code></h4>
+<div class='docblock'><p>Get the slope for the given <code>t</code> with no range bounds</p>
+</div><h4 id='method.elevate' class='method'><code>fn <a href='../nbez/trait.BezCurve.html#tymethod.elevate' class='fnname'>elevate</a>(&amp;self) -&gt; <a class='struct' href='../nbez/struct.Bez5o.html' title='nbez::Bez5o'>Bez5o</a>&lt;F,&nbsp;P&gt;</code></h4>
+<div class='docblock'><p>Elevate the curve order, getting a curve that is one order higher but gives the same results upon interpolation <a href="../nbez/trait.BezCurve.html#tymethod.elevate">Read more</a></p>
+</div><h4 id='method.split_unbounded' class='method'><code>fn <a href='../nbez/trait.BezCurve.html#tymethod.split_unbounded' class='fnname'>split_unbounded</a>(&amp;self, t: F) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a><a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt;, <a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a></code></h4>
+<div class='docblock'><p>Split the curve with no range bounds</p>
+</div><h4 id='method.order' class='method'><code>fn <a href='../nbez/trait.BezCurve.html#tymethod.order' class='fnname'>order</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></h4>
+<div class='docblock'><p>Gets the order of the curve</p>
+</div><h4 id='method.interp' class='method'><code>fn <a href='../nbez/trait.BezCurve.html#method.interp' class='fnname'>interp</a>(&amp;self, t: F) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self::<a class='trait' href='../nbez/trait.BezCurve.html' title='nbez::BezCurve'>Point</a>&gt;</code></h4>
+<div class='docblock'><p>Perform interpolation on the curve for the given <code>t</code>, bounded on <code>0.0</code> to <code>1.0</code> inclusive. Returns <code>None</code> if <code>t</code> is not within bounds. <a href="../nbez/trait.BezCurve.html#method.interp">Read more</a></p>
+</div><h4 id='method.slope' class='method'><code>fn <a href='../nbez/trait.BezCurve.html#method.slope' class='fnname'>slope</a>(&amp;self, t: F) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;Self::<a class='trait' href='../nbez/trait.BezCurve.html' title='nbez::BezCurve'>Point</a>::Vector&gt;</code></h4>
+<div class='docblock'><p>Get the slope for the given <code>t</code>, bounded on <code>0.0</code> to <code>1.0</code> inclusive. Returns <code>None</code> if <code>t</code> is not within bounds. <a href="../nbez/trait.BezCurve.html#method.slope">Read more</a></p>
+</div><h4 id='method.split' class='method'><code>fn <a href='../nbez/trait.BezCurve.html#method.split' class='fnname'>split</a>(&amp;self, t: F) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a>Self, Self<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a>&gt;</code></h4>
+<div class='docblock'><p>Split the curve at the given <code>t</code>, bounded on <code>0.0</code> to <code>1.0</code> inclusive. Returns <code>None</code> if <code>t</code> is not within bounds. <a href="../nbez/trait.BezCurve.html#method.split">Read more</a></p>
+</div><h4 id='method.interp_iter' class='method'><code>fn <a href='../nbez/trait.BezCurve.html#method.interp_iter' class='fnname'>interp_iter</a>&lt;'a&gt;(&amp;'a self, samples: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a>) -&gt; <a class='struct' href='../nbez/struct.InterpIter.html' title='nbez::InterpIter'>InterpIter</a>&lt;'a,&nbsp;F,&nbsp;Self&gt;</code></h4>
+<div class='docblock'><p>Get an iterator over the interpolated values of this curve, splitting the curve into the given number of samples. <a href="../nbez/trait.BezCurve.html#method.interp_iter">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;F,&nbsp;P&gt; <a class='trait' href='../nbez/trait.OrderStatic.html' title='nbez::OrderStatic'>OrderStatic</a> for <a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt; <span class='where'>where F: <a class='trait' href='../nbez/trait.Float.html' title='nbez::Float'>Float</a>, P: <a class='trait' href='../nbez/trait.Point.html' title='nbez::Point'>Point</a>&lt;F&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-2099' class='srclink' href='../src/nbez/src/macros.rs.html#407-414' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.order_static' class='method'><code>fn <a href='../nbez/trait.OrderStatic.html#tymethod.order_static' class='fnname'>order_static</a>() -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></h4>
+<div class='docblock'><p>Gets the compiletime-known curve order.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;F,&nbsp;P&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html' title='core::convert::From'>From</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.array.html'>[</a>P<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.array.html'>; 4 + 1]</a>&gt; for <a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt; <span class='where'>where F: <a class='trait' href='../nbez/trait.Float.html' title='nbez::Float'>Float</a>, P: <a class='trait' href='../nbez/trait.Point.html' title='nbez::Point'>Point</a>&lt;F&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-2103' class='srclink' href='../src/nbez/src/macros.rs.html#416-423' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(array: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.array.html'>[</a>P<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.array.html'>; 4 + 1]</a>) -&gt; <a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt;</code></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;F,&nbsp;P&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html' title='core::convert::AsRef'>AsRef</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>P<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt; for <a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt; <span class='where'>where F: <a class='trait' href='../nbez/trait.Float.html' title='nbez::Float'>Float</a>, P: <a class='trait' href='../nbez/trait.Point.html' title='nbez::Point'>Point</a>&lt;F&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-2111' class='srclink' href='../src/nbez/src/macros.rs.html#425-434' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.as_ref' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html#tymethod.as_ref' class='fnname'>as_ref</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a>P<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;F,&nbsp;P&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html' title='core::convert::AsMut'>AsMut</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[</a>P<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>&gt; for <a class='struct' href='../nbez/struct.Bez4o.html' title='nbez::Bez4o'>Bez4o</a>&lt;F,&nbsp;P&gt; <span class='where'>where F: <a class='trait' href='../nbez/trait.Float.html' title='nbez::Float'>Float</a>, P: <a class='trait' href='../nbez/trait.Point.html' title='nbez::Point'>Point</a>&lt;F&gt;</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-2117' class='srclink' href='../src/nbez/src/macros.rs.html#436-445' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.as_mut' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.AsMut.html#tymethod.as_mut' class='fnname'>as_mut</a>(&amp;mut self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a>P<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "nbez";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>
