@@ -4,9 +4,12 @@ use num_traits::cast::FromPrimitive;
 use std::fmt::Debug;
 use std::ops::{Add, Sub, Mul, Div};
 
+/// A helper trait to simplify float generics
 pub trait Float: float::Float + FromPrimitive + Debug {}
 impl<F> Float for F where F: float::Float + FromPrimitive + Debug {}
 
+/// A trait that specifies the necessary operators needed to have a point which `nbez` can properly
+/// perform operations on
 pub trait PVOps<F>:		
 		Add<Self, Output = Self> +
 		Sub<Self, Output = Self> +
@@ -17,6 +20,8 @@ pub trait PVOps<F>:
 		where Self: Sized,
 			  F: Float {}
 
+/// Specifies the needed traits to have a `nbez` point, as well as the vector type that this
+/// corresponds to
 pub trait Point<F>: 
 		Into<<Self as Point<F>>::Vector> +
 		Clone +
@@ -25,9 +30,11 @@ pub trait Point<F>:
 
 		where Self: Sized,
 			  F: Float {
+	/// The vector that is associatded with this point
 	type Vector: Vector<F>;
 }
 
+/// A vector. Gets associated with any number of points
 pub trait Vector<F: Float>: 
 		Clone +
 		Copy +

@@ -94,6 +94,7 @@ impl<'a, F, B> ExactSizeIterator for BezIter<'a, F, B>
         where F: Float,
               B: BezCurve<F> + OrderStatic {}
 
+/// An iterator over a bezier curve's interpolated points
 pub struct InterpIter<'a, F, B>
         where F: Float,
               B: 'a + BezCurve<F> {
@@ -223,7 +224,7 @@ pub trait OrderStatic {
 }
 
 
-/// A chain on bezier curves, with the last point of each curve being the first point of the next.
+/// A chain of bezier curves, with the last point of each curve being the first point of the next.
 #[derive(Clone, Copy)]
 pub struct BezChain<F, B, C>
         where F: Float,
